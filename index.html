@@ -227,10 +227,10 @@
         // Initialisation au chargement
         document.addEventListener('DOMContentLoaded', () => {
             
-            // Initialiser les graphiques en premier pour éviter les erreurs de référence
+            // 1. Initialiser les graphiques en premier pour éviter les erreurs
             initCharts();
             
-            // Ajouter des données par défaut
+            // 2. Ajouter des données par défaut
             addPost({
                 title: "Livret A",
                 type: "percent",
@@ -249,7 +249,6 @@
                 durationMonths: 120
             });
             
-            // Ajouter des sorties par défaut
             addExpense({
                 title: "Remboursement Crédit",
                 type: "fixed",
@@ -262,11 +261,11 @@
                 value: 10
             });
 
-            // Écouteurs globaux
+            // 3. Écouteurs globaux
             document.getElementById('net-salary').addEventListener('input', handleGlobalInput);
             document.getElementById('projection-years').addEventListener('input', handleGlobalInput);
             
-            // Premier calcul
+            // 4. Premier calcul
             updateSimulation();
         });
 
@@ -400,7 +399,6 @@
         }
 
         // --- GESTION DES SORTIES / PROJETS ---
-
         function addExpense(defaultData = null) {
             const id = nextExpenseId++;
             const expense = defaultData || {
@@ -465,7 +463,8 @@
 
         // Moteur de calcul principal
         function updateSimulation() {
-            // Lecture inputs globaux pour sécurité
+            if (!lineChartInstance || !pieChartInstance) return; // Sécurité au chargement
+
             const salary = state.salary;
             const horizonMonths = state.horizonYears * 12;
 
@@ -561,7 +560,7 @@
             lineDatasets.unshift({
                 label: 'Capital Total',
                 data: totalCapitalOverTime,
-                borderColor: '#1f2937', // dark gray
+                borderColor: '#1f2937',
                 backgroundColor: 'rgba(31, 41, 55, 0.1)',
                 borderWidth: 3,
                 tension: 0.4,
@@ -607,7 +606,6 @@
                  });
             }
             
-            // Idem pour les dépenses
             if(state.expenses.some(e => e.type === 'percent')){
                  const container = document.getElementById('expenses-container');
                  const spans = container.querySelectorAll('.expense-calc-val');
@@ -718,7 +716,6 @@
             lineChartInstance.data.datasets = lineDatasets;
             lineChartInstance.update();
         }
-
     </script>
 </body>
 </html>
