@@ -147,9 +147,15 @@
                     Paramètres Globaux
                 </h2>
                 <div class="space-y-6">
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-2">Revenus Mensuels Nets du Foyer (€)</label>
-                        <input type="number" id="input-income" value="4500" class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition text-lg" oninput="triggerCalc()">
+                    <div class="grid grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Revenus Mensuels Nets (€)</label>
+                            <input type="number" id="input-income" value="4500" class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition text-lg" oninput="triggerCalc()">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Mois de départ</label>
+                            <input type="month" id="input-start-date" value="2024-01" class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition text-lg" oninput="triggerCalc()">
+                        </div>
                     </div>
                     <div class="grid grid-cols-2 gap-6">
                         <div>
@@ -316,16 +322,16 @@
         // --- STATE MANAGEMENT ---
         let state = {
             expenses: [
-                { id: 1, name: 'Crédit Résidence Principale', amount: 1200, isDebt: true, start: 0, end: 15 },
-                { id: 2, name: 'Charges Courantes (Fixes)', amount: 1500, isDebt: false, start: 0, end: 50 }
+                { id: 1, name: 'Crédit Résidence Principale', amount: 1200, isDebt: true, start: '2024-01', end: '2039-01' },
+                { id: 2, name: 'Charges Courantes (Fixes)', amount: 1500, isDebt: false, start: '2024-01', end: '' }
             ],
             pockets: [
-                { id: 1, name: 'Livret A (Épargne Précaution)', amountType: '€', amount: 300, rate: 3.0, vol: 0, tax: 'none', initial: 15000, start: 0, end: 50 },
-                { id: 2, name: 'PEA (ETF Monde)', amountType: '%', amount: 100, rate: 7.5, vol: 15, tax: 'pea', initial: 10000, start: 0, end: 20 }
+                { id: 1, name: 'Livret A (Épargne Précaution)', amountType: '€', amount: 300, rate: 3.0, vol: 0, tax: 'none', initial: 15000, start: '2024-01', end: '' },
+                { id: 2, name: 'PEA (ETF Monde)', amountType: '%', amount: 100, rate: 7.5, vol: 15, tax: 'pea', initial: 10000, start: '2024-01', end: '2044-01' }
             ],
             events: [
-                { id: 1, name: 'Achat Voiture (Sortie)', year: 4, amount: -20000, pocketId: 1 },
-                { id: 2, name: 'Héritage (Entrée)', year: 10, amount: 50000, pocketId: 2 }
+                { id: 1, name: 'Achat Voiture (Sortie)', date: '2028-01', amount: -20000, pocketId: 1 },
+                { id: 2, name: 'Héritage (Entrée)', date: '2034-01', amount: 50000, pocketId: 2 }
             ]
         };
 
@@ -383,28 +389,12 @@
                     </div>
                     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
                         <div>
-                            <label class="block text-xs font-medium text-slate-500 mb-1">Montant Mensuel</label>
-                            <div class="flex items-center bg-slate-50 rounded-lg border border-slate-200 px-3 py-2">
-                                <input type="number" value="${exp.amount}" onchange="updateExpense(${index}, 'amount', this.value)" class="w-full bg-transparent outline-none text-sm font-medium">
-                                <span class="text-slate-400 text-sm ml-1">€</span>
-                            </div>
+                            <label class="block text-xs font-medium text-slate-500 mb-1">Début (Mois/Année)</label>
+                            <input type="month" value="${exp.start}" onchange="updateExpense(${index}, 'start', this.value)" class="w-full bg-slate-50 rounded-lg border border-slate-200 px-3 py-2 outline-none focus:border-brand-500 text-sm">
                         </div>
                         <div>
-                            <label class="block text-xs font-medium text-slate-500 mb-1">Est-ce un Crédit ?</label>
-                            <div class="flex items-center h-full pb-2">
-                                <label class="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-700">
-                                    <input type="checkbox" ${exp.isDebt ? 'checked' : ''} onchange="updateExpense(${index}, 'isDebt', this.checked)" class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500"> 
-                                    Oui (Endettement)
-                                </label>
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-slate-500 mb-1">Début (Année)</label>
-                            <input type="number" min="0" value="${exp.start}" onchange="updateExpense(${index}, 'start', this.value)" class="w-full bg-slate-50 rounded-lg border border-slate-200 px-3 py-2 outline-none focus:border-brand-500 text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-slate-500 mb-1">Fin (Année)</label>
-                            <input type="number" min="1" value="${exp.end}" placeholder="Infini" onchange="updateExpense(${index}, 'end', this.value)" class="w-full bg-slate-50 rounded-lg border border-slate-200 px-3 py-2 outline-none focus:border-brand-500 text-sm">
+                            <label class="block text-xs font-medium text-slate-500 mb-1">Fin (Mois/Année)</label>
+                            <input type="month" value="${exp.end}" placeholder="Infini" onchange="updateExpense(${index}, 'end', this.value)" class="w-full bg-slate-50 rounded-lg border border-slate-200 px-3 py-2 outline-none focus:border-brand-500 text-sm">
                         </div>
                     </div>
                 </div>
@@ -425,31 +415,12 @@
                             <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">1. Flux Financiers</h4>
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-xs font-medium text-slate-500 mb-1">Flux Mensuel</label>
-                                    <div class="flex border border-slate-200 rounded-lg overflow-hidden bg-slate-50">
-                                        <select onchange="updatePocket(${index}, 'amountType', this.value)" class="bg-slate-100 text-sm px-2 py-2 border-r border-slate-200 outline-none font-medium">
-                                            <option value="€" ${pkt.amountType === '€' ? 'selected' : ''}>€/m</option>
-                                            <option value="%" ${pkt.amountType === '%' ? 'selected' : ''}>% Reste</option>
-                                        </select>
-                                        <input type="number" value="${pkt.amount}" onchange="updatePocket(${index}, 'amount', this.value)" class="w-full px-3 py-2 bg-transparent outline-none text-sm font-medium">
-                                    </div>
+                                    <label class="block text-xs font-medium text-slate-500 mb-1">Début (Mois/Année)</label>
+                                    <input type="month" value="${pkt.start}" onchange="updatePocket(${index}, 'start', this.value)" class="w-full bg-slate-50 rounded-lg border border-slate-200 px-3 py-2 outline-none focus:border-brand-500 text-sm">
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-medium text-slate-500 mb-1">Déjà en Compte</label>
-                                    <div class="flex items-center bg-slate-50 rounded-lg border border-slate-200 px-3 py-2">
-                                        <input type="number" value="${pkt.initial || 0}" onchange="updatePocket(${index}, 'initial', this.value)" class="w-full bg-transparent outline-none text-sm">
-                                        <span class="text-slate-400 text-sm ml-1">€</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-xs font-medium text-slate-500 mb-1">Début (Année)</label>
-                                    <input type="number" min="0" value="${pkt.start}" onchange="updatePocket(${index}, 'start', this.value)" class="w-full bg-slate-50 rounded-lg border border-slate-200 px-3 py-2 outline-none focus:border-brand-500 text-sm">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-medium text-slate-500 mb-1">Fin (Année)</label>
-                                    <input type="number" min="1" value="${pkt.end}" placeholder="Infini" onchange="updatePocket(${index}, 'end', this.value)" class="w-full bg-slate-50 rounded-lg border border-slate-200 px-3 py-2 outline-none focus:border-brand-500 text-sm">
+                                    <label class="block text-xs font-medium text-slate-500 mb-1">Fin (Mois/Année)</label>
+                                    <input type="month" value="${pkt.end}" placeholder="Infini" onchange="updatePocket(${index}, 'end', this.value)" class="w-full bg-slate-50 rounded-lg border border-slate-200 px-3 py-2 outline-none focus:border-brand-500 text-sm">
                                 </div>
                             </div>
                         </div>
@@ -495,8 +466,8 @@
                         <input type="text" value="${ev.name}" onchange="updateEvent(${index}, 'name', this.value)" class="w-full bg-slate-50 rounded-lg border border-slate-200 px-3 py-2 outline-none focus:border-brand-500 text-sm">
                     </div>
                     <div class="w-full md:w-1/4">
-                        <label class="block text-xs font-medium text-slate-500 mb-1">Année</label>
-                        <input type="number" min="1" value="${ev.year}" onchange="updateEvent(${index}, 'year', this.value)" class="w-full bg-slate-50 rounded-lg border border-slate-200 px-3 py-2 outline-none focus:border-brand-500 text-sm">
+                        <label class="block text-xs font-medium text-slate-500 mb-1">Date</label>
+                        <input type="month" value="${ev.date}" onchange="updateEvent(${index}, 'date', this.value)" class="w-full bg-slate-50 rounded-lg border border-slate-200 px-3 py-2 outline-none focus:border-brand-500 text-sm">
                     </div>
                     <div class="w-full md:w-1/3">
                         <label class="block text-xs font-medium text-slate-500 mb-1">Montant (€)</label>
@@ -563,17 +534,30 @@
         }
 
         // --- CRUD ACTIONS ---
-        function addExpense() { state.expenses.push({ id: Date.now(), name: 'Nouvelle charge', amount: 500, isDebt: false, start: 0, end: 20 }); renderAll(); triggerCalc(); }
+        function addExpense() { state.expenses.push({ id: Date.now(), name: 'Nouvelle charge', amount: 500, isDebt: false, start: document.getElementById('input-start-date').value || '2024-01', end: '' }); renderAll(); triggerCalc(); }
         function removeExpense(i) { state.expenses.splice(i, 1); renderAll(); triggerCalc(); }
-        function updateExpense(i, field, val) { state.expenses[i][field] = field === 'isDebt' ? val : (field === 'name' ? val : parseFloat(val)||0); triggerCalc(); }
+        function updateExpense(i, field, val) { 
+            if(field === 'isDebt') state.expenses[i][field] = val;
+            else if(['name', 'start', 'end'].includes(field)) state.expenses[i][field] = val;
+            else state.expenses[i][field] = parseFloat(val)||0; 
+            triggerCalc(); 
+        }
 
-        function addPocket() { state.pockets.push({ id: Date.now(), name: 'Nouveau placement', amountType: '€', amount: 200, rate: 4, vol: 5, tax: 'pfu', initial: 0, start: 0, end: 25 }); renderAll(); triggerCalc(); }
+        function addPocket() { state.pockets.push({ id: Date.now(), name: 'Nouveau placement', amountType: '€', amount: 200, rate: 4, vol: 5, tax: 'pfu', initial: 0, start: document.getElementById('input-start-date').value || '2024-01', end: '' }); renderAll(); triggerCalc(); }
         function removePocket(i) { state.pockets.splice(i, 1); renderAll(); triggerCalc(); }
-        function updatePocket(i, field, val) { state.pockets[i][field] = field === 'name' || field === 'amountType' || field === 'tax' ? val : parseFloat(val)||0; triggerCalc(); }
+        function updatePocket(i, field, val) { 
+            if(['name', 'amountType', 'tax', 'start', 'end'].includes(field)) state.pockets[i][field] = val;
+            else state.pockets[i][field] = parseFloat(val)||0; 
+            triggerCalc(); 
+        }
 
-        function addEvent() { state.events.push({ id: Date.now(), name: 'Projet', year: 5, amount: -5000, pocketId: state.pockets[0]?.id || 0 }); renderAll(); triggerCalc(); }
+        function addEvent() { state.events.push({ id: Date.now(), name: 'Projet', date: '2025-01', amount: -5000, pocketId: state.pockets[0]?.id || 0 }); renderAll(); triggerCalc(); }
         function removeEvent(i) { state.events.splice(i, 1); renderAll(); triggerCalc(); }
-        function updateEvent(i, field, val) { state.events[i][field] = field === 'name' ? val : parseFloat(val)||0; triggerCalc(); }
+        function updateEvent(i, field, val) { 
+            if(['name', 'date'].includes(field)) state.events[i][field] = val;
+            else state.events[i][field] = parseFloat(val)||0; 
+            triggerCalc(); 
+        }
 
         function renderAll() { renderExpenses(); renderPockets(); renderEvents(); }
         function resetApp() { location.reload(); }
@@ -588,34 +572,12 @@
             const isStacked = document.getElementById('chart-type-toggle').checked;
             const isRealValue = document.getElementById('inflation-toggle').checked;
 
-            // Prepare Initial KPIs (Based on Year 0/Month 1 to show initial state)
-            let initialYear = 0;
-            let activeExpensesInit = state.expenses.filter(e => initialYear >= (e.start || 0) && (!e.end || initialYear <= e.end));
-            const totalFixedExpensesInit = activeExpensesInit.reduce((sum, e) => sum + e.amount, 0);
+            const startDateInput = document.getElementById('input-start-date').value || new Date().toISOString().slice(0, 7);
+            const [startYrStr, startMoStr] = startDateInput.split('-');
+            const baseYear = parseInt(startYrStr, 10);
+            const baseMonth = parseInt(startMoStr, 10);
             
-            // Calculate max debt ratio over the whole period
             let maxDebtRatio = 0;
-            for(let y = 0; y <= years; y++) {
-                let debtInYear = state.expenses.filter(e => e.isDebt && y >= (e.start||0) && (!e.end || y <= e.end)).reduce((sum, e) => sum + e.amount, 0);
-                let ratio = income > 0 ? debtInYear / income : 0;
-                if(ratio > maxDebtRatio) maxDebtRatio = ratio;
-            }
-
-            // Update Debt KPI
-            document.getElementById('kpi-taux-endettement').innerText = fmtPct.format(maxDebtRatio);
-            const debtCard = document.getElementById('kpi-debt-card');
-            const debtMsg = document.getElementById('kpi-debt-msg');
-            if (maxDebtRatio > 0.35) {
-                debtCard.classList.replace('border-l-rose-500', 'border-l-rose-700');
-                debtCard.classList.add('bg-rose-50');
-                debtMsg.innerText = "Dépassement du seuil (35%) !";
-                debtMsg.classList.add('text-rose-600');
-            } else {
-                debtCard.classList.replace('border-l-rose-700', 'border-l-rose-500');
-                debtCard.classList.remove('bg-rose-50');
-                debtMsg.innerText = "Seuil sain (< 35%) au maximum";
-                debtMsg.classList.remove('text-rose-600');
-            }
 
             // 3. The Time Loop (Projection Engine)
             let timeline = [];
@@ -634,9 +596,8 @@
             // Prepare events by month
             const eventsByMonth = {};
             state.events.forEach(ev => {
-                const monthTarget = ev.year * 12;
-                if(!eventsByMonth[monthTarget]) eventsByMonth[monthTarget] = [];
-                eventsByMonth[monthTarget].push(ev);
+                if(!eventsByMonth[ev.date]) eventsByMonth[ev.date] = [];
+                eventsByMonth[ev.date].push(ev);
             });
 
             // Tracking for Donut (Year 1 average)
@@ -645,16 +606,25 @@
             let totalFixedYear1 = 0;
             let pctError = false;
 
-            for (let m = 1; m <= months; m++) {
-                let currentYear = m / 12;
-                let df = isRealValue ? Math.pow(1 + inflationRate, currentYear) : 1;
+            for (let m = 0; m < months; m++) {
+                let currentMo = baseMonth + m;
+                let currentYr = baseYear + Math.floor((currentMo - 1) / 12);
+                let displayMo = ((currentMo - 1) % 12) + 1;
+                
+                let currentYYYYMM = `${currentYr}-${displayMo.toString().padStart(2, '0')}`;
+                let currentYearFloat = m / 12; 
+                let df = isRealValue ? Math.pow(1 + inflationRate, currentYearFloat) : 1;
 
                 // A. Determine active flows for THIS month
-                let activeExpenses = state.expenses.filter(e => currentYear >= (e.start || 0) && (!e.end || currentYear <= e.end));
+                let activeExpenses = state.expenses.filter(e => currentYYYYMM >= (e.start || '0000-00') && (!e.end || currentYYYYMM <= e.end));
                 let monthlyFixed = activeExpenses.reduce((sum, e) => sum + e.amount, 0);
-                let monthlySavingCapacity = income - monthlyFixed;
+                
+                let debtInMonth = activeExpenses.filter(e => e.isDebt).reduce((sum, e) => sum + e.amount, 0);
+                let currentRatio = income > 0 ? debtInMonth / income : 0;
+                if(currentRatio > maxDebtRatio) maxDebtRatio = currentRatio;
 
-                let activePockets = state.pockets.filter(p => currentYear >= (p.start || 0) && (!p.end || currentYear <= p.end));
+                let monthlySavingCapacity = income - monthlyFixed;
+                let activePockets = state.pockets.filter(p => currentYYYYMM >= (p.start || '0000-00') && (!p.end || currentYYYYMM <= p.end));
                 
                 // Distribute capacity
                 let totalAllocatedEuro = 0;
@@ -686,15 +656,15 @@
                 let resteAVivreMonth = monthlySavingCapacity - totalSavingsFlow;
 
                 // Track Year 1 stats for the Donut Chart
-                if (m <= 12) {
+                if (m < 12) {
                     resteAVivreYear1 += resteAVivreMonth;
                     totalFixedYear1 += monthlyFixed;
                     flowTracker.forEach(ft => { ft.totalFlowYear1 += (monthFlows[ft.id] || 0); });
                 }
 
                 // Process Events
-                if (eventsByMonth[m]) {
-                    eventsByMonth[m].forEach(ev => {
+                if (eventsByMonth[currentYYYYMM]) {
+                    eventsByMonth[currentYYYYMM].forEach(ev => {
                         let target = pocketStates.find(p => p.id === ev.pocketId) || [...pocketStates].sort((a,b)=>(b.capital+b.interests)-(a.capital+a.interests))[0];
                         if(target && ev.amount < 0) {
                             let totalVal = target.capital + target.interests;
@@ -720,14 +690,14 @@
                     ps.capital += monthlyInjection; 
 
                     let grossValue = ps.capital + ps.interests;
-                    let coneSpread = (pocketConfig.vol / 100) * grossValue * Math.sqrt(currentYear);
+                    let coneSpread = (pocketConfig.vol / 100) * grossValue * Math.sqrt(currentYearFloat || 0.01);
                     
                     ps.history.push(grossValue / df);
                     ps.historyOpti.push((grossValue + coneSpread) / df);
                     ps.historyPessi.push(Math.max(0, grossValue - coneSpread) / df);
                 });
 
-                if (m % 12 === 0) timeline.push(`Année ${m/12}`);
+                timeline.push(`${displayMo.toString().padStart(2, '0')}/${currentYr}`);
             }
 
             // Error display for percentages
@@ -737,6 +707,22 @@
             let avgResteAVivre = resteAVivreYear1 / 12;
             document.getElementById('kpi-reste-vivre').innerText = fmtEuro.format(avgResteAVivre);
             document.getElementById('kpi-reste-vivre').className = avgResteAVivre < 0 ? "text-3xl font-bold text-rose-500" : "text-3xl font-bold text-slate-900";
+
+            // Update Debt KPI
+            document.getElementById('kpi-taux-endettement').innerText = fmtPct.format(maxDebtRatio);
+            const debtCard = document.getElementById('kpi-debt-card');
+            const debtMsg = document.getElementById('kpi-debt-msg');
+            if (maxDebtRatio > 0.35) {
+                debtCard.classList.replace('border-l-rose-500', 'border-l-rose-700');
+                debtCard.classList.add('bg-rose-50');
+                debtMsg.innerText = "Dépassement du seuil (35%) !";
+                debtMsg.classList.add('text-rose-600');
+            } else {
+                debtCard.classList.replace('border-l-rose-700', 'border-l-rose-500');
+                debtCard.classList.remove('bg-rose-50');
+                debtMsg.innerText = "Seuil sain (< 35%) au maximum";
+                debtMsg.classList.remove('text-rose-600');
+            }
 
             // Update Donut (Average of Year 1)
             updateDonut(totalFixedYear1/12, flowTracker.map(ft => ({ id: ft.id, flow: ft.totalFlowYear1/12 })), avgResteAVivre);
@@ -821,10 +807,9 @@
 
             if (isStacked) {
                 pocketStates.forEach((ps, i) => {
-                    let yearlyData = ps.history.filter((_, idx) => (idx + 1) % 12 === 0);
                     datasets.push({
                         label: ps.name,
-                        data: yearlyData,
+                        data: ps.history,
                         backgroundColor: COLORS[i % COLORS.length],
                         stack: 'Stack 0',
                         borderRadius: 4,
@@ -833,15 +818,11 @@
             } else {
                 pocketStates.forEach((ps, i) => {
                     let color = COLORS[i % COLORS.length];
-                    let yearlyData = ps.history.filter((_, idx) => (idx + 1) % 12 === 0);
-                    let yearlyOpti = ps.historyOpti.filter((_, idx) => (idx + 1) % 12 === 0);
-                    let yearlyPessi = ps.historyPessi.filter((_, idx) => (idx + 1) % 12 === 0);
-                    
                     const pocketConfig = state.pockets.find(p => p.id === ps.id);
 
                     datasets.push({
                         label: ps.name + ' (Neutre)',
-                        data: yearlyData,
+                        data: ps.history,
                         borderColor: color,
                         backgroundColor: 'transparent',
                         borderWidth: 3,
@@ -853,7 +834,7 @@
                     if(pocketConfig.vol > 0) {
                          datasets.push({
                             label: ps.name + ' (Haut)',
-                            data: yearlyOpti,
+                            data: ps.historyOpti,
                             borderColor: color + '30',
                             backgroundColor: 'transparent',
                             borderWidth: 1,
@@ -863,7 +844,7 @@
                         });
                         datasets.push({
                             label: ps.name + ' (Bas)',
-                            data: yearlyPessi,
+                            data: ps.historyPessi,
                             borderColor: color + '30',
                             backgroundColor: color + '15', 
                             fill: '-2', 
