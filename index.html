@@ -1,661 +1,797 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" class="bg-slate-50 text-slate-800 font-sans antialiased">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulateur d'Épargne Avancé</title>
-    
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Tailwind CSS -->
+    <title>Dashboard Patrimonial Pro | Vision 360°</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass-card { 
+            background: rgba(255, 255, 255, 0.98); 
+            border: 1px solid rgba(226, 232, 240, 0.8); 
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025); 
+        }
+        .toggle-checkbox:checked { right: 0; border-color: #4f46e5; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #4f46e5; }
+        
+        /* Custom scrollbars */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Jauges cross-browser (Correction Firefox/Safari/Chrome) */
+        input[type=range] {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        
+        input[type=range]:focus { outline: none; }
+
+        /* WebKit (Chrome, Safari, Edge) */
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%; height: 8px;
+            cursor: pointer;
+            background: #e2e8f0;
+            border-radius: 4px;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 24px; width: 24px;
+            border-radius: 50%;
+            background: #4f46e5;
+            cursor: pointer;
+            margin-top: -8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: transform 0.1s;
+        }
+        input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+
+        /* Firefox */
+        input[type=range]::-moz-range-track {
+            width: 100%; height: 8px;
+            cursor: pointer;
+            background: #e2e8f0;
+            border-radius: 4px;
+            border: none;
+        }
+        input[type=range]::-moz-range-thumb {
+            height: 24px; width: 24px;
+            border: none;
+            border-radius: 50%;
+            background: #4f46e5;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: transform 0.1s;
+        }
+        input[type=range]::-moz-range-thumb:hover { transform: scale(1.15); }
+    </style>
     <script>
         tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                    colors: {
-                        brand: {
-                            50: '#eff6ff',
-                            100: '#dbeafe',
-                            500: '#3b82f6',
-                            600: '#2563eb',
-                            900: '#1e3a8a',
-                        }
-                    }
-                }
-            }
+            theme: { extend: { colors: { brand: { 50: '#eef2ff', 100: '#e0e7ff', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca', 900: '#312e81' } } } }
         }
     </script>
-    
-    <!-- Icons (FontAwesome) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <style>
-        body {
-            background-color: #f3f4f6;
-            color: #1f2937;
-        }
-        /* Custom scrollbar */
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
-        
-        /* Smooth transitions */
-        .post-card { transition: all 0.3s ease; }
-        .post-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
-    </style>
 </head>
-<body class="min-h-screen p-4 md:p-8">
+<body class="min-h-screen p-4 md:p-8 lg:p-10 flex flex-col gap-8">
 
-    <div class="max-w-7xl mx-auto">
-        
-        <!-- Header -->
-        <header class="mb-8 text-center md:text-left flex flex-col md:flex-row justify-between items-center gap-4">
-            <div>
-                <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3">
-                    <i class="fa-solid fa-piggy-bank text-brand-600"></i>
-                    Simulateur d'Épargne
-                </h1>
-                <p class="text-gray-500 mt-1">Planifiez et visualisez votre stratégie patrimoniale.</p>
+    <header class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-4">
+        <div>
+            <h1 class="text-3xl font-bold text-slate-900 tracking-tight mb-2">Simulateur Patrimonial <span class="text-brand-600">360°</span></h1>
+            <p class="text-base text-slate-500">Projection financière, fiscalité, stress test temporel & ajustements.</p>
+        </div>
+        <div class="flex gap-4">
+            <button onclick="resetApp()" class="px-5 py-2.5 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg shadow-sm hover:bg-slate-50 transition">Réinitialiser</button>
+            <button onclick="window.print()" class="px-5 py-2.5 text-sm font-medium text-white bg-brand-600 rounded-lg shadow-sm hover:bg-brand-700 transition">Exporter (PDF)</button>
+        </div>
+    </header>
+
+    <!-- Tab Navigation -->
+    <div class="flex border-b border-slate-200">
+        <button onclick="switchMode('edit')" id="tab-edit" class="py-3 px-6 text-sm font-medium border-b-2 border-brand-600 text-brand-600 transition-colors">
+            1. Paramétrage Détaillé
+        </button>
+        <button onclick="switchMode('simulate')" id="tab-simulate" class="py-3 px-6 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition-colors flex items-center gap-2">
+            2. Mode Ajustement Rapide (Jauges)
+            <span class="bg-brand-100 text-brand-700 py-0.5 px-2 rounded-full text-xs">Sandbox</span>
+        </button>
+    </div>
+
+    <!-- KPIs Top Bar -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="glass-card p-6 rounded-2xl border-l-4 border-l-blue-500">
+            <p class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2">Reste à Vivre (Année 1)</p>
+            <div class="flex items-end gap-2">
+                <span class="text-3xl font-bold text-slate-900" id="kpi-reste-vivre">0 €</span>
+                <span class="text-base font-medium text-slate-500 mb-1">/ mois</span>
             </div>
-            <div class="flex items-center gap-4">
-                <button onclick="forceRefresh()" class="bg-white border border-gray-200 text-gray-600 hover:text-brand-600 hover:border-brand-300 hover:bg-brand-50 px-4 py-3 rounded-2xl shadow-sm transition-all flex items-center gap-2" title="Forcer le recalcul">
-                    <i class="fa-solid fa-rotate"></i>
-                </button>
-                <div class="bg-white px-6 py-3 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
-                    <div class="text-sm text-gray-500">Capital estimé à terme</div>
-                    <div id="summary-total-capital" class="text-2xl font-bold text-brand-600">0 €</div>
-                </div>
+            <p class="text-sm text-slate-400 mt-2">Capacité initiale d'épargne non allouée</p>
+        </div>
+        <div class="glass-card p-6 rounded-2xl border-l-4 border-l-rose-500 transition-colors" id="kpi-debt-card">
+            <p class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2">Taux d'Endettement (Max)</p>
+            <div class="flex items-end gap-2">
+                <span class="text-3xl font-bold text-slate-900" id="kpi-taux-endettement">0 %</span>
             </div>
-        </header>
-
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            
-            <!-- Left Column : Inputs -->
-            <div class="lg:col-span-5 space-y-6">
-                
-                <!-- Section 1 : Paramètres généraux -->
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                    <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-sliders text-gray-400"></i> Paramètres Généraux
-                    </h2>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Salaire Net Mensuel</label>
-                            <div class="relative">
-                                <input type="number" id="net-salary" value="3000" min="0" step="100" class="w-full pl-4 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all">
-                                <span class="absolute right-4 top-2.5 text-gray-400 font-medium">€</span>
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Mois de départ</label>
-                            <input type="month" id="simulation-start" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all">
-                        </div>
-                        <div class="md:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Horizon de projection</label>
-                            <div class="relative">
-                                <input type="number" id="projection-years" value="10" min="1" max="50" step="1" class="w-full pl-4 pr-16 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all">
-                                <span class="absolute right-4 top-2.5 text-gray-400 font-medium">Ans</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Section 2 : Poches d'épargne -->
-                <div class="flex items-center justify-between mt-8 mb-4">
-                    <h2 class="text-lg font-semibold flex items-center gap-2">
-                        <i class="fa-solid fa-wallet text-gray-400"></i> Vos Épargnes
-                    </h2>
-                    <button onclick="addPost()" class="text-sm bg-brand-50 text-brand-600 hover:bg-brand-100 px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2">
-                        <i class="fa-solid fa-plus"></i> Ajouter
-                    </button>
-                </div>
-
-                <div id="posts-container" class="space-y-4">
-                    <!-- Les poches d'épargne seront injectées ici par JS -->
-                </div>
-                
-                <!-- Section 3 : Sorties et Projets -->
-                <div class="flex items-center justify-between mt-8 mb-4">
-                    <h2 class="text-lg font-semibold flex items-center gap-2">
-                        <i class="fa-solid fa-money-bill-transfer text-gray-400"></i> Sorties & Projets
-                    </h2>
-                    <button onclick="addExpense()" class="text-sm bg-orange-50 text-orange-600 hover:bg-orange-100 px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2">
-                        <i class="fa-solid fa-plus"></i> Ajouter
-                    </button>
-                </div>
-
-                <div id="expenses-container" class="space-y-4">
-                    <!-- Les sorties seront injectées ici par JS -->
-                </div>
-                
-                <!-- Résumé des contributions -->
-                <div class="bg-gray-800 text-white p-5 rounded-2xl shadow-lg mt-6 grid grid-cols-3 gap-4 text-center divide-x divide-gray-700">
-                    <div>
-                        <div class="text-gray-400 text-xs mb-1" title="Calculé sur le 1er mois">Épargne (Départ)</div>
-                        <div id="summary-monthly-savings" class="text-lg font-bold text-emerald-400">0 €</div>
-                    </div>
-                    <div>
-                        <div class="text-gray-400 text-xs mb-1" title="Calculé sur le 1er mois">Sorties (Départ)</div>
-                        <div id="summary-monthly-expenses" class="text-lg font-bold text-orange-400">0 €</div>
-                    </div>
-                    <div>
-                        <div class="text-gray-400 text-xs mb-1" title="Calculé sur le 1er mois">Reste à vivre</div>
-                        <div id="summary-monthly-rest" class="text-lg font-bold text-brand-400">0 €</div>
-                    </div>
-                </div>
-
+            <p class="text-sm mt-2 font-medium" id="kpi-debt-msg">Seuil sain (< 35%)</p>
+        </div>
+        <div class="glass-card p-6 rounded-2xl border-l-4 border-l-emerald-500">
+            <p class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2">Capital Brut (Fin)</p>
+            <div class="flex items-end gap-2">
+                <span class="text-3xl font-bold text-slate-900" id="kpi-capital-brut">0 €</span>
             </div>
-
-            <!-- Right Column : Visualisations -->
-            <div class="lg:col-span-7 space-y-6">
-                
-                <!-- Graphique : Évolution dans le temps -->
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col h-[400px]">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-lg font-semibold">Évolution du Capital</h2>
-                        <div class="flex bg-gray-50 p-1 rounded-lg border border-gray-200">
-                            <button id="btn-chart-line" onclick="setChartType('line')" class="px-3 py-1 text-sm rounded-md bg-white shadow-sm font-medium text-gray-800 transition-all">Courbes</button>
-                            <button id="btn-chart-bar" onclick="setChartType('bar')" class="px-3 py-1 text-sm rounded-md text-gray-500 hover:text-gray-800 transition-all">Bâtons</button>
-                        </div>
-                    </div>
-                    <div class="flex-grow relative w-full h-full">
-                        <canvas id="lineChart"></canvas>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Graphique : Répartition mensuelle -->
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center">
-                        <h2 class="text-lg font-semibold w-full text-left mb-1">Répartition de l'épargne</h2>
-                        <p class="text-xs text-gray-400 w-full text-left mb-4">Calculée au mois de départ de la simulation</p>
-                        <div class="relative w-full aspect-square max-w-[250px]">
-                            <canvas id="pieChart"></canvas>
-                        </div>
-                    </div>
-
-                    <!-- Informations supplémentaires -->
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-center gap-4">
-                        <div class="p-4 bg-emerald-50 rounded-xl border border-emerald-100">
-                            <div class="text-sm text-emerald-600 font-medium mb-1"><i class="fa-solid fa-arrow-trend-up mr-2"></i>Intérêts générés</div>
-                            <div id="summary-interests" class="text-2xl font-bold text-emerald-700">0 €</div>
-                        </div>
-                        <div class="p-4 bg-blue-50 rounded-xl border border-blue-100">
-                            <div class="text-sm text-blue-600 font-medium mb-1"><i class="fa-solid fa-piggy-bank mr-2"></i>Capital versé</div>
-                            <div id="summary-invested" class="text-2xl font-bold text-blue-700">0 €</div>
-                        </div>
-                    </div>
-                </div>
-
+            <p class="text-sm text-slate-400 mt-2">En monnaie courante, avant impôts</p>
+        </div>
+        <div class="glass-card p-6 rounded-2xl border-l-4 border-l-indigo-500">
+            <p class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2">Capital Net Réel (Fin)</p>
+            <div class="flex items-end gap-2">
+                <span class="text-3xl font-bold text-slate-900" id="kpi-capital-net">0 €</span>
             </div>
+            <p class="text-sm text-slate-400 mt-2">Après impôts & corrigé de l'inflation</p>
         </div>
     </div>
 
+    <main class="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
+        
+        <!-- LEFT COLUMN : INPUTS (EDIT MODE) -->
+        <div id="view-edit" class="xl:col-span-5 flex flex-col gap-8">
+            
+            <!-- Global Params -->
+            <section class="glass-card p-6 rounded-2xl">
+                <h2 class="text-lg font-semibold text-slate-800 mb-6 flex items-center gap-3">
+                    <svg class="w-6 h-6 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Paramètres Globaux
+                </h2>
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Revenus Mensuels Nets du Foyer (€)</label>
+                        <input type="number" id="input-income" value="4500" class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition text-lg" oninput="triggerCalc()">
+                    </div>
+                    <div class="grid grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Inflation Estimée (%)</label>
+                            <input type="number" id="input-inflation" value="2.0" step="0.1" class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition text-lg" oninput="triggerCalc()">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Durée (Années)</label>
+                            <input type="number" id="input-years" value="25" min="1" max="50" class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition text-lg" oninput="triggerCalc()">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Expenses -->
+            <section class="glass-card p-6 rounded-2xl">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 class="text-lg font-semibold text-slate-800">Charges & Crédits (Sorties)</h2>
+                        <p class="text-xs text-slate-500 mt-1">Gérez le timing de vos dépenses</p>
+                    </div>
+                    <button onclick="addExpense()" class="px-4 py-2 bg-brand-50 text-brand-700 rounded-lg text-sm font-medium hover:bg-brand-100 transition">+ Ajouter</button>
+                </div>
+                <div id="expenses-container" class="space-y-5 max-h-[600px] overflow-y-auto pr-2">
+                    <!-- Dynamic expenses here -->
+                </div>
+            </section>
+
+            <!-- Pockets -->
+            <section class="glass-card p-6 rounded-2xl">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 class="text-lg font-semibold text-slate-800">Poches d'Épargne (Actifs)</h2>
+                        <p class="text-xs text-slate-500 mt-1">Placements et durée d'investissement</p>
+                    </div>
+                    <button onclick="addPocket()" class="px-4 py-2 bg-brand-50 text-brand-700 rounded-lg text-sm font-medium hover:bg-brand-100 transition">+ Ajouter</button>
+                </div>
+                <div id="pockets-container" class="space-y-6 max-h-[600px] overflow-y-auto pr-2">
+                    <!-- Dynamic pockets here -->
+                </div>
+                <div id="pocket-error" class="text-sm bg-rose-50 border border-rose-200 text-rose-600 p-3 rounded-lg mt-4 hidden">
+                    ⚠️ L'allocation totale dépasse votre capacité d'épargne !
+                </div>
+            </section>
+
+             <!-- Events -->
+             <section class="glass-card p-6 rounded-2xl">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 class="text-lg font-semibold text-slate-800">Événements de vie</h2>
+                        <p class="text-xs text-slate-500 mt-1">Apports, cash-outs (négatif) ou héritages (positif)</p>
+                    </div>
+                    <button onclick="addEvent()" class="px-4 py-2 bg-brand-50 text-brand-700 rounded-lg text-sm font-medium hover:bg-brand-100 transition">+ Ajouter</button>
+                </div>
+                <div id="events-container" class="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                    <!-- Dynamic events here -->
+                </div>
+            </section>
+        </div>
+
+        <!-- LEFT COLUMN : SIMULATION (SLIDERS MODE) - Initially Hidden -->
+        <div id="view-simulate" class="xl:col-span-5 flex flex-col gap-8 hidden">
+            
+            <div class="bg-brand-50 border border-brand-200 p-5 rounded-2xl text-brand-800 mb-2">
+                <h3 class="font-bold mb-2 flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"></path><path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z"></path></svg>
+                    Mode Ajustement Rapide
+                </h3>
+                <p class="text-sm">Utilisez les jauges pour faire varier vos revenus, l'inflation, ou le rendement de vos placements sans modifier la structure temporelle de vos investissements. Observez l'impact immédiat sur la courbe.</p>
+            </div>
+
+            <section class="glass-card p-6 rounded-2xl">
+                <h2 class="text-lg font-semibold text-slate-800 mb-6">Paramètres Globaux</h2>
+                <div class="space-y-8">
+                    <!-- Income Slider -->
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="text-sm font-semibold text-slate-700">Revenus Mensuels</label>
+                            <span class="text-brand-600 font-bold" id="sim-val-income">4500 €</span>
+                        </div>
+                        <input type="range" id="sim-slide-income" min="1000" max="20000" step="100" value="4500" 
+                               oninput="document.getElementById('input-income').value=this.value; document.getElementById('sim-val-income').innerText=this.value+' €'; triggerCalc();">
+                    </div>
+                    <!-- Inflation Slider -->
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="text-sm font-semibold text-slate-700">Inflation</label>
+                            <span class="text-brand-600 font-bold" id="sim-val-inflation">2.0 %</span>
+                        </div>
+                        <input type="range" id="sim-slide-inflation" min="0" max="10" step="0.1" value="2.0" 
+                               oninput="document.getElementById('input-inflation').value=this.value; document.getElementById('sim-val-inflation').innerText=this.value+' %'; triggerCalc();">
+                    </div>
+                </div>
+            </section>
+
+            <section class="glass-card p-6 rounded-2xl">
+                <h2 class="text-lg font-semibold text-slate-800 mb-6">Rendements & Apports par Poche</h2>
+                <div id="sim-pockets-container" class="space-y-8">
+                    <!-- Generated via JS -->
+                </div>
+            </section>
+        </div>
+
+
+        <!-- RIGHT COLUMN : CHARTS -->
+        <div class="xl:col-span-7 flex flex-col gap-8">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Cashflow Donut -->
+                <div class="glass-card p-6 rounded-2xl flex flex-col justify-center">
+                    <h3 class="text-base font-semibold text-slate-800 text-center mb-4">Répartition (Basée sur l'Année 1)</h3>
+                    <div class="relative h-64 w-full">
+                        <canvas id="donutChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Control Panel -->
+                <div class="glass-card p-6 rounded-2xl flex flex-col justify-center gap-6">
+                    <h3 class="text-base font-semibold text-slate-800 border-b border-slate-200 pb-3">Contrôles d'Affichage</h3>
+                    
+                    <div class="flex flex-col gap-6">
+                        <!-- Toggle Line / Bar -->
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-slate-600 font-medium">Lignes & Risques</span>
+                            <label class="relative inline-block w-14 h-7 rounded-full cursor-pointer">
+                                <input type="checkbox" id="chart-type-toggle" class="absolute opacity-0 w-0 h-0 toggle-checkbox" onchange="triggerCalc()">
+                                <span class="toggle-label block w-14 h-7 bg-slate-300 rounded-full transition-colors duration-300 relative">
+                                    <span class="absolute left-1 top-1 bg-white w-5 h-5 rounded-full transition-transform duration-300 transform"></span>
+                                </span>
+                            </label>
+                            <span class="text-sm text-slate-600 font-medium">Bâtons (Cumul)</span>
+                        </div>
+
+                        <!-- Toggle Nominal / Real -->
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-slate-600 font-medium">Brut (Nominal)</span>
+                            <label class="relative inline-block w-14 h-7 rounded-full cursor-pointer">
+                                <input type="checkbox" id="inflation-toggle" class="absolute opacity-0 w-0 h-0 toggle-checkbox" onchange="triggerCalc()">
+                                <span class="toggle-label block w-14 h-7 bg-slate-300 rounded-full transition-colors duration-300 relative">
+                                    <span class="absolute left-1 top-1 bg-white w-5 h-5 rounded-full transition-transform duration-300 transform"></span>
+                                </span>
+                            </label>
+                            <span class="text-sm text-slate-600 font-medium">Net d'Inflation</span>
+                        </div>
+                    </div>
+                    <div class="text-xs leading-relaxed text-slate-600 bg-slate-100 p-4 rounded-xl border border-slate-200 mt-2">
+                        <span class="font-bold text-slate-800">Note :</span> Le mode "Lignes" affiche des cônes de stress test (optimiste/pessimiste) autour du scénario neutre en fonction de la volatilité des actifs.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Projection Chart -->
+            <div class="glass-card p-6 rounded-2xl flex-grow min-h-[500px] flex flex-col shadow-lg">
+                <h3 class="text-xl font-bold text-slate-800 mb-6">Projection de l'Épargne Capitalisée</h3>
+                <div class="relative flex-grow w-full h-full min-h-[400px]">
+                    <canvas id="projectionChart"></canvas>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
     <script>
-        function getCurrentMonthStr() {
-            const now = new Date();
-            const y = now.getFullYear();
-            const m = String(now.getMonth() + 1).padStart(2, '0');
-            return `${y}-${m}`;
-        }
-
-        function addMonthsToStr(yyyy_mm, months) {
-            if (!yyyy_mm) return '';
-            const [y, m] = yyyy_mm.split('-');
-            const d = new Date(parseInt(y), parseInt(m) - 1 + months, 1);
-            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-        }
-
-        const chartColors = [
-            '#3b82f6', '#10b981', '#f59e0b', '#ef4444', 
-            '#8b5cf6', '#06b6d4', '#ec4899', '#f97316'
-        ];
-
-        let currentChartMode = 'line';
-
+        // --- STATE MANAGEMENT ---
         let state = {
-            salary: 3000,
-            horizonYears: 10,
-            startDate: getCurrentMonthStr(),
-            posts: [],
-            expenses: []
+            expenses: [
+                { id: 1, name: 'Crédit Résidence Principale', amount: 1200, isDebt: true, start: 0, end: 15 },
+                { id: 2, name: 'Charges Courantes (Fixes)', amount: 1500, isDebt: false, start: 0, end: 50 }
+            ],
+            pockets: [
+                { id: 1, name: 'Livret A (Épargne Précaution)', amountType: '€', amount: 300, rate: 3.0, vol: 0, tax: 'none', initial: 15000, start: 0, end: 50 },
+                { id: 2, name: 'PEA (ETF Monde)', amountType: '%', amount: 100, rate: 7.5, vol: 15, tax: 'pea', initial: 10000, start: 0, end: 20 }
+            ],
+            events: [
+                { id: 1, name: 'Achat Voiture (Sortie)', year: 4, amount: -20000, pocketId: 1 },
+                { id: 2, name: 'Héritage (Entrée)', year: 10, amount: 50000, pocketId: 2 }
+            ]
         };
 
-        let nextPostId = 1;
-        let nextExpenseId = 1;
+        const TAX_RULES = {
+            'none': { desc: "Défiscalisé", taxRate: 0 },
+            'pfu': { desc: "CTO (Flat Tax 30%)", taxRate: 0.30 },
+            'pea': { desc: "PEA (PS 17.2%)", taxRate: 0.172 }
+        };
 
-        let pieChartInstance = null;
-        let lineChartInstance = null;
+        const COLORS = ['#4f46e5', '#0ea5e9', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'];
+        let donutChartInst = null;
+        let projChartInst = null;
+        let currentMode = 'edit';
 
-        const currencyFormatter = new Intl.NumberFormat('fr-FR', {
-            style: 'currency',
-            currency: 'EUR',
-            maximumFractionDigits: 0
-        });
+        // Formatter
+        const fmtEuro = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
+        const fmtPct = new Intl.NumberFormat('fr-FR', { style: 'percent', maximumFractionDigits: 1 });
 
-        document.addEventListener('DOMContentLoaded', () => {
-            initCharts();
+        // --- UI TOGGLES ---
+        function switchMode(mode) {
+            currentMode = mode;
+            document.getElementById('view-edit').classList.toggle('hidden', mode !== 'edit');
+            document.getElementById('view-simulate').classList.toggle('hidden', mode !== 'simulate');
             
-            document.getElementById('simulation-start').value = state.startDate;
-
-            addPost({
-                title: "Livret A",
-                type: "percent",
-                value: 10,
-                yield: 3,
-                startDate: state.startDate,
-                endDate: '' 
-            });
-            
-            addPost({
-                title: "PEA (ETF)",
-                type: "fixed",
-                value: 300,
-                yield: 7,
-                startDate: state.startDate,
-                endDate: addMonthsToStr(state.startDate, 120) 
-            });
-            
-            addExpense({
-                title: "Remboursement Crédit",
-                type: "fixed",
-                value: 800,
-                startDate: state.startDate,
-                endDate: addMonthsToStr(state.startDate, 24)
-            });
-            
-            addExpense({
-                title: "Loisirs / Vacances",
-                type: "percent",
-                value: 10,
-                startDate: state.startDate,
-                endDate: ''
-            });
-
-            document.getElementById('net-salary').addEventListener('input', handleGlobalInput);
-            document.getElementById('projection-years').addEventListener('input', handleGlobalInput);
-            document.getElementById('simulation-start').addEventListener('change', handleGlobalInput);
-            
-            updateSimulation();
-        });
-
-        function handleGlobalInput() {
-            state.salary = parseFloat(document.getElementById('net-salary').value) || 0;
-            state.horizonYears = parseInt(document.getElementById('projection-years').value) || 1;
-            state.startDate = document.getElementById('simulation-start').value || getCurrentMonthStr();
-            updateSimulation();
-        }
-
-        function forceRefresh() {
-            const icon = document.querySelector('.fa-rotate');
-            icon.classList.add('animate-spin');
-            setTimeout(() => icon.classList.remove('animate-spin'), 500);
-            updateSimulation();
-        }
-
-        function setChartType(mode) {
-            currentChartMode = mode;
-            const btnLine = document.getElementById('btn-chart-line');
-            const btnBar = document.getElementById('btn-chart-bar');
-            
-            if (mode === 'line') {
-                btnLine.className = "px-3 py-1 text-sm rounded-md bg-white shadow-sm font-medium text-gray-800 transition-all";
-                btnBar.className = "px-3 py-1 text-sm rounded-md text-gray-500 hover:text-gray-800 transition-all";
-            } else {
-                btnBar.className = "px-3 py-1 text-sm rounded-md bg-white shadow-sm font-medium text-gray-800 transition-all";
-                btnLine.className = "px-3 py-1 text-sm rounded-md text-gray-500 hover:text-gray-800 transition-all";
-            }
-            updateSimulation();
-        }
-
-        function addPost(defaultData = null) {
-            const id = nextPostId++;
-            const post = defaultData || {
-                title: `Épargne ${id}`,
-                type: 'fixed',
-                value: 100,
-                yield: 4,
-                startDate: state.startDate,
-                endDate: ''
-            };
-            post.id = id;
-            state.posts.push(post);
-            renderPosts();
-            updateSimulation();
-        }
-
-        function removePost(id) {
-            state.posts = state.posts.filter(p => p.id !== id);
-            renderPosts();
-            updateSimulation();
-        }
-
-        function updatePost(id, field, value) {
-            const post = state.posts.find(p => p.id === id);
-            if (post) {
-                post[field] = value;
-                updateSimulation();
-            }
-        }
-
-        function renderPosts() {
-            const container = document.getElementById('posts-container');
-            container.innerHTML = '';
-
-            state.posts.forEach((post, index) => {
-                const color = chartColors[index % chartColors.length];
+            if (mode === 'simulate') {
+                document.getElementById('tab-simulate').classList.replace('border-transparent', 'border-brand-600');
+                document.getElementById('tab-simulate').classList.replace('text-slate-500', 'text-brand-600');
+                document.getElementById('tab-edit').classList.replace('border-brand-600', 'border-transparent');
+                document.getElementById('tab-edit').classList.replace('text-brand-600', 'text-slate-500');
                 
-                const div = document.createElement('div');
-                div.className = 'post-card bg-white p-5 rounded-xl border border-gray-100 shadow-sm relative overflow-hidden';
-                div.innerHTML = `
-                    <div class="absolute top-0 left-0 w-1 h-full" style="background-color: ${color}"></div>
-                    
-                    <div class="flex justify-between items-start mb-4">
-                        <input type="text" value="${post.title}" onchange="updatePost(${post.id}, 'title', this.value)" class="font-semibold text-gray-800 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-brand-500 focus:outline-none transition-colors px-1 py-0.5 w-1/2">
-                        <button onclick="removePost(${post.id})" class="text-gray-400 hover:text-red-500 transition-colors" title="Supprimer">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-4 mb-4">
-                        <div>
-                            <label class="block text-xs font-medium text-gray-500 mb-1">Apport mensuel</label>
-                            <div class="flex">
-                                <select onchange="updatePost(${post.id}, 'type', this.value)" class="bg-gray-50 border border-gray-200 text-sm rounded-l-lg p-2 focus:outline-none focus:border-brand-500 w-16">
-                                    <option value="fixed" ${post.type === 'fixed' ? 'selected' : ''}>€</option>
-                                    <option value="percent" ${post.type === 'percent' ? 'selected' : ''}>%</option>
-                                </select>
-                                <input type="number" min="0" step="any" value="${post.value}" oninput="updatePost(${post.id}, 'value', parseFloat(this.value) || 0)" class="w-full bg-gray-50 border-y border-r border-gray-200 rounded-r-lg p-2 text-sm focus:outline-none focus:border-brand-500">
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-medium text-gray-500 mb-1">Rendement annuel</label>
-                            <div class="relative">
-                                <input type="number" min="0" max="100" step="0.1" value="${post.yield}" oninput="updatePost(${post.id}, 'yield', parseFloat(this.value) || 0)" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 pr-8 text-sm focus:outline-none focus:border-brand-500">
-                                <span class="absolute right-3 top-2 text-gray-400 text-sm">%</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Durée avec Dates -->
-                    <div class="bg-gray-50 p-3 rounded-lg border border-gray-100">
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-medium text-gray-500 mb-1">Date de début</label>
-                                <input type="month" value="${post.startDate}" onchange="updatePost(${post.id}, 'startDate', this.value)" class="w-full bg-white border border-gray-200 rounded-md p-1.5 text-sm focus:outline-none focus:border-brand-500">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-medium text-gray-500 mb-1">Date de fin (optionnel)</label>
-                                <input type="month" value="${post.endDate || ''}" onchange="updatePost(${post.id}, 'endDate', this.value)" class="w-full bg-white border border-gray-200 rounded-md p-1.5 text-sm focus:outline-none focus:border-brand-500">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    ${post.type === 'percent' ? `
-                        <div class="mt-3 text-right text-xs text-gray-500 font-medium">
-                            Soit <span class="text-brand-600">${currencyFormatter.format((post.value / 100) * state.salary)}</span> / mois
-                        </div>
-                    ` : ''}
-                </div>
-                `;
-                container.appendChild(div);
-            });
-        }
-
-        function addExpense(defaultData = null) {
-            const id = nextExpenseId++;
-            const expense = defaultData || {
-                title: `Dépense ${id}`,
-                type: 'fixed',
-                value: 150,
-                startDate: state.startDate,
-                endDate: ''
-            };
-            expense.id = id;
-            state.expenses.push(expense);
-            renderExpenses();
-            updateSimulation();
-        }
-
-        function removeExpense(id) {
-            state.expenses = state.expenses.filter(e => e.id !== id);
-            renderExpenses();
-            updateSimulation();
-        }
-
-        function updateExpense(id, field, value) {
-            const expense = state.expenses.find(e => e.id === id);
-            if (expense) {
-                expense[field] = value;
-                updateSimulation();
+                // Sync main inputs to simulation sliders before showing
+                document.getElementById('sim-slide-income').value = document.getElementById('input-income').value;
+                document.getElementById('sim-val-income').innerText = document.getElementById('input-income').value + ' €';
+                document.getElementById('sim-slide-inflation').value = document.getElementById('input-inflation').value;
+                document.getElementById('sim-val-inflation').innerText = document.getElementById('input-inflation').value + ' %';
+                
+                renderSimulationSliders();
+            } else {
+                document.getElementById('tab-edit').classList.replace('border-transparent', 'border-brand-600');
+                document.getElementById('tab-edit').classList.replace('text-slate-500', 'text-brand-600');
+                document.getElementById('tab-simulate').classList.replace('border-brand-600', 'border-transparent');
+                document.getElementById('tab-simulate').classList.replace('text-brand-600', 'text-slate-500');
+                renderAll(); // Re-render edit fields just in case
             }
         }
 
+        // --- DOM RENDERERS (EDIT MODE) ---
         function renderExpenses() {
             const container = document.getElementById('expenses-container');
-            container.innerHTML = '';
-
-            state.expenses.forEach((expense) => {
-                const div = document.createElement('div');
-                div.className = 'post-card bg-white pt-4 pb-3 px-4 rounded-xl border border-gray-100 shadow-sm relative overflow-hidden flex flex-col gap-3';
-                div.innerHTML = `
-                    <div class="absolute top-0 left-0 w-1 h-full bg-orange-400"></div>
-                    
-                    <div class="flex justify-between items-center ml-2">
-                        <input type="text" value="${expense.title}" onchange="updateExpense(${expense.id}, 'title', this.value)" class="font-semibold text-gray-800 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-brand-500 focus:outline-none transition-colors px-1 py-0.5 w-2/3">
-                        <button onclick="removeExpense(${expense.id})" class="text-gray-400 hover:text-red-500 transition-colors p-1" title="Supprimer">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
+            container.innerHTML = state.expenses.map((exp, index) => `
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                    <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                        <input type="text" value="${exp.name}" onchange="updateExpense(${index}, 'name', this.value)" class="text-base font-semibold text-slate-800 bg-transparent outline-none w-2/3 focus:text-brand-600 transition">
+                        <button onclick="removeExpense(${index})" class="text-rose-500 hover:text-rose-700 text-sm font-medium px-2 py-1 rounded bg-rose-50">Supprimer</button>
                     </div>
-
-                    <div class="flex gap-2 items-center ml-2">
-                        <select onchange="updateExpense(${expense.id}, 'type', this.value)" class="bg-gray-50 border border-gray-200 text-sm rounded-lg p-2 focus:outline-none focus:border-brand-500 w-16">
-                            <option value="fixed" ${expense.type === 'fixed' ? 'selected' : ''}>€</option>
-                            <option value="percent" ${expense.type === 'percent' ? 'selected' : ''}>%</option>
-                        </select>
-                        <input type="number" min="0" step="any" value="${expense.value}" oninput="updateExpense(${expense.id}, 'value', parseFloat(this.value) || 0)" class="flex-grow bg-gray-50 border border-gray-200 rounded-lg p-2 text-sm focus:outline-none focus:border-brand-500">
-                    </div>
-
-                    <div class="bg-gray-50 p-2 rounded-lg border border-gray-100 ml-2">
-                        <div class="grid grid-cols-2 gap-2">
-                            <div>
-                                <label class="block text-[10px] uppercase font-semibold text-gray-400 mb-1">Début</label>
-                                <input type="month" value="${expense.startDate}" onchange="updateExpense(${expense.id}, 'startDate', this.value)" class="w-full bg-white border border-gray-200 rounded-md p-1 text-xs focus:outline-none focus:border-brand-500">
-                            </div>
-                            <div>
-                                <label class="block text-[10px] uppercase font-semibold text-gray-400 mb-1">Fin</label>
-                                <input type="month" value="${expense.endDate || ''}" onchange="updateExpense(${expense.id}, 'endDate', this.value)" class="w-full bg-white border border-gray-200 rounded-md p-1 text-xs focus:outline-none focus:border-brand-500">
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-500 mb-1">Montant Mensuel</label>
+                            <div class="flex items-center bg-slate-50 rounded-lg border border-slate-200 px-3 py-2">
+                                <input type="number" value="${exp.amount}" onchange="updateExpense(${index}, 'amount', this.value)" class="w-full bg-transparent outline-none text-sm font-medium">
+                                <span class="text-slate-400 text-sm ml-1">€</span>
                             </div>
                         </div>
-                    </div>
-                    
-                    ${expense.type === 'percent' ? `
-                        <div class="text-right text-xs text-gray-500 font-medium ml-2">
-                            Soit <span class="text-orange-600 expense-calc-val">${currencyFormatter.format((expense.value / 100) * state.salary)}</span> / mois
+                        <div>
+                            <label class="block text-xs font-medium text-slate-500 mb-1">Est-ce un Crédit ?</label>
+                            <div class="flex items-center h-full pb-2">
+                                <label class="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-700">
+                                    <input type="checkbox" ${exp.isDebt ? 'checked' : ''} onchange="updateExpense(${index}, 'isDebt', this.checked)" class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500"> 
+                                    Oui (Endettement)
+                                </label>
+                            </div>
                         </div>
-                    ` : ''}
-                `;
-                container.appendChild(div);
-            });
+                        <div>
+                            <label class="block text-xs font-medium text-slate-500 mb-1">Début (Année)</label>
+                            <input type="number" min="0" value="${exp.start}" onchange="updateExpense(${index}, 'start', this.value)" class="w-full bg-slate-50 rounded-lg border border-slate-200 px-3 py-2 outline-none focus:border-brand-500 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-500 mb-1">Fin (Année)</label>
+                            <input type="number" min="1" value="${exp.end}" placeholder="Infini" onchange="updateExpense(${index}, 'end', this.value)" class="w-full bg-slate-50 rounded-lg border border-slate-200 px-3 py-2 outline-none focus:border-brand-500 text-sm">
+                        </div>
+                    </div>
+                </div>
+            `).join('');
         }
 
-        function updateSimulation() {
-            if (!lineChartInstance || !pieChartInstance) return; 
+        function renderPockets() {
+            const container = document.getElementById('pockets-container');
+            container.innerHTML = state.pockets.map((pkt, index) => `
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-5">
+                    <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                        <input type="text" value="${pkt.name}" onchange="updatePocket(${index}, 'name', this.value)" class="text-base font-bold text-brand-700 bg-transparent outline-none w-2/3 focus:text-brand-900 transition">
+                        <button onclick="removePocket(${index})" class="text-rose-500 hover:text-rose-700 text-sm font-medium px-2 py-1 rounded bg-rose-50">Supprimer</button>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="space-y-4">
+                            <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">1. Flux Financiers</h4>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-500 mb-1">Flux Mensuel</label>
+                                    <div class="flex border border-slate-200 rounded-lg overflow-hidden bg-slate-50">
+                                        <select onchange="updatePocket(${index}, 'amountType', this.value)" class="bg-slate-100 text-sm px-2 py-2 border-r border-slate-200 outline-none font-medium">
+                                            <option value="€" ${pkt.amountType === '€' ? 'selected' : ''}>€/m</option>
+                                            <option value="%" ${pkt.amountType === '%' ? 'selected' : ''}>% Reste</option>
+                                        </select>
+                                        <input type="number" value="${pkt.amount}" onchange="updatePocket(${index}, 'amount', this.value)" class="w-full px-3 py-2 bg-transparent outline-none text-sm font-medium">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-500 mb-1">Déjà en Compte</label>
+                                    <div class="flex items-center bg-slate-50 rounded-lg border border-slate-200 px-3 py-2">
+                                        <input type="number" value="${pkt.initial || 0}" onchange="updatePocket(${index}, 'initial', this.value)" class="w-full bg-transparent outline-none text-sm">
+                                        <span class="text-slate-400 text-sm ml-1">€</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-500 mb-1">Début (Année)</label>
+                                    <input type="number" min="0" value="${pkt.start}" onchange="updatePocket(${index}, 'start', this.value)" class="w-full bg-slate-50 rounded-lg border border-slate-200 px-3 py-2 outline-none focus:border-brand-500 text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-500 mb-1">Fin (Année)</label>
+                                    <input type="number" min="1" value="${pkt.end}" placeholder="Infini" onchange="updatePocket(${index}, 'end', this.value)" class="w-full bg-slate-50 rounded-lg border border-slate-200 px-3 py-2 outline-none focus:border-brand-500 text-sm">
+                                </div>
+                            </div>
+                        </div>
 
-            const salary = state.salary;
-            const horizonMonths = state.horizonYears * 12;
+                        <div class="space-y-4">
+                            <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">2. Paramètres Marché</h4>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-500 mb-1">Rendement Annuel</label>
+                                    <div class="flex items-center bg-slate-50 rounded-lg border border-slate-200 px-3 py-2">
+                                        <input type="number" step="0.1" value="${pkt.rate}" onchange="updatePocket(${index}, 'rate', this.value)" class="w-full bg-transparent outline-none text-sm">
+                                        <span class="text-slate-400 text-sm ml-1">%</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-500 mb-1">Volatilité (Risque)</label>
+                                    <div class="flex items-center bg-slate-50 rounded-lg border border-slate-200 px-3 py-2">
+                                        <input type="number" step="1" value="${pkt.vol}" onchange="updatePocket(${index}, 'vol', this.value)" class="w-full bg-transparent outline-none text-sm">
+                                        <span class="text-slate-400 text-sm ml-1">%</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-500 mb-1">Fiscalité à la sortie</label>
+                                <select onchange="updatePocket(${index}, 'tax', this.value)" class="w-full bg-slate-50 rounded-lg border border-slate-200 px-3 py-2 outline-none focus:border-brand-500 text-sm">
+                                    <option value="none" ${pkt.tax === 'none' ? 'selected' : ''}>Défiscalisé (Livret A, etc.)</option>
+                                    <option value="pfu" ${pkt.tax === 'pfu' ? 'selected' : ''}>Compte Titres / PFU (30%)</option>
+                                    <option value="pea" ${pkt.tax === 'pea' ? 'selected' : ''}>PEA (> 5 ans) (17.2%)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
 
-            let totalInvestedFinal = 0;
-            
-            // Calcul global au démarrage (Mois 0 de la simulation)
-            let startingMonthlySavings = 0;
-            let startingMonthlyExpenses = 0;
+        function renderEvents() {
+            const container = document.getElementById('events-container');
+            container.innerHTML = state.events.map((ev, index) => `
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-4 items-center">
+                    <div class="w-full md:w-1/3">
+                        <label class="block text-xs font-medium text-slate-500 mb-1">Nom de l'événement</label>
+                        <input type="text" value="${ev.name}" onchange="updateEvent(${index}, 'name', this.value)" class="w-full bg-slate-50 rounded-lg border border-slate-200 px-3 py-2 outline-none focus:border-brand-500 text-sm">
+                    </div>
+                    <div class="w-full md:w-1/4">
+                        <label class="block text-xs font-medium text-slate-500 mb-1">Année</label>
+                        <input type="number" min="1" value="${ev.year}" onchange="updateEvent(${index}, 'year', this.value)" class="w-full bg-slate-50 rounded-lg border border-slate-200 px-3 py-2 outline-none focus:border-brand-500 text-sm">
+                    </div>
+                    <div class="w-full md:w-1/3">
+                        <label class="block text-xs font-medium text-slate-500 mb-1">Montant (€)</label>
+                        <input type="number" value="${ev.amount}" onchange="updateEvent(${index}, 'amount', this.value)" class="w-full bg-slate-50 rounded-lg border border-slate-200 px-3 py-2 outline-none focus:border-brand-500 text-sm" title="Négatif pour retirer de l'argent">
+                    </div>
+                    <div class="w-full md:w-auto md:mt-5 text-right">
+                        <button onclick="removeEvent(${index})" class="text-rose-500 hover:text-rose-700 text-sm font-medium px-2 py-2 rounded bg-rose-50 md:bg-transparent">×</button>
+                    </div>
+                </div>
+            `).join('');
+            if(state.events.length === 0) container.innerHTML = "<p class='text-sm text-slate-400 italic p-4 text-center border border-dashed border-slate-300 rounded-xl'>Aucun événement de vie prévu.</p>";
+        }
 
-            const pieLabels = [];
-            const pieData = [];
-            const pieColors = [];
-            
-            // Étiquettes de la courbe en années réelles
-            const lineLabels = [];
-            const baseYear = parseInt(state.startDate.split('-')[0]) || new Date().getFullYear();
-            
-            for (let m = 0; m <= horizonMonths; m += 12) {
-                lineLabels.push(String(baseYear + Math.floor(m/12)));
-            }
-
-            const lineDatasets = [];
-            let totalCapitalOverTime = new Array(lineLabels.length).fill(0);
-
-            // Calcul des Sorties pour le résumé au départ
-            state.expenses.forEach(expense => {
-                let monthlyExpenseTarget = expense.type === 'percent' ? (expense.value / 100) * salary : expense.value;
-                if (state.startDate >= expense.startDate && (!expense.endDate || state.startDate <= expense.endDate)) {
-                    startingMonthlyExpenses += monthlyExpenseTarget;
-                }
-            });
-
-            // Calcul par poste (Épargnes)
-            state.posts.forEach((post, index) => {
-                const color = chartColors[index % chartColors.length];
-                let monthlyContribTarget = post.type === 'percent' ? (post.value / 100) * salary : post.value;
-
-                // Camembert : uniquement si actif au mois de départ
-                if (state.startDate >= post.startDate && (!post.endDate || state.startDate <= post.endDate)) {
-                    startingMonthlySavings += monthlyContribTarget;
-                    if (monthlyContribTarget > 0) {
-                        pieLabels.push(post.title);
-                        pieData.push(monthlyContribTarget);
-                        pieColors.push(color);
-                    }
-                }
+        function renderSimulationSliders() {
+            const container = document.getElementById('sim-pockets-container');
+            container.innerHTML = state.pockets.map((pkt, index) => {
                 
-                const monthlyRate = post.yield / 100 / 12;
-                let currentBalance = 0;
-                let postCapitalOverTime = [];
-                let postTotalInvested = 0;
-
-                for (let m = 0; m <= horizonMonths; m++) {
-                    const currentLoopMonthStr = addMonthsToStr(state.startDate, m);
-                    
-                    if (m % 12 === 0) {
-                        postCapitalOverTime.push(currentBalance);
-                        totalCapitalOverTime[m/12] += currentBalance;
-                    }
-
-                    if (m < horizonMonths) {
-                        let isContributing = currentLoopMonthStr >= post.startDate && (!post.endDate || currentLoopMonthStr <= post.endDate);
-                        let contrib = isContributing ? monthlyContribTarget : 0;
-                        
-                        currentBalance = currentBalance * (1 + monthlyRate) + contrib;
-                        postTotalInvested += contrib;
-                    }
+                // Montant Slider Logic
+                let amountSliderHtml = '';
+                if(pkt.amountType === '€') {
+                    amountSliderHtml = `
+                        <div class="mb-5">
+                            <div class="flex justify-between items-center mb-2">
+                                <label class="text-xs text-slate-500 uppercase tracking-wider font-semibold">Allocation Mensuelle</label>
+                                <span class="text-sm font-bold text-slate-800" id="sim-val-amt-${index}">${pkt.amount} €</span>
+                            </div>
+                            <input type="range" id="sim-slide-amt-${index}" min="0" max="5000" step="50" value="${pkt.amount}" 
+                                oninput="updatePocketFromSim(${index}, 'amount', this.value, '€')">
+                        </div>`;
+                } else {
+                    amountSliderHtml = `
+                        <div class="mb-5">
+                            <div class="flex justify-between items-center mb-2">
+                                <label class="text-xs text-slate-500 uppercase tracking-wider font-semibold">Allocation du Reste (%)</label>
+                                <span class="text-sm font-bold text-slate-800" id="sim-val-amt-${index}">${pkt.amount} %</span>
+                            </div>
+                            <input type="range" id="sim-slide-amt-${index}" min="0" max="100" step="5" value="${pkt.amount}" 
+                                oninput="updatePocketFromSim(${index}, 'amount', this.value, '%')">
+                        </div>`;
                 }
 
-                totalInvestedFinal += postTotalInvested;
-
-                lineDatasets.push({
-                    type: currentChartMode === 'bar' ? 'bar' : 'line',
-                    label: post.title,
-                    data: postCapitalOverTime,
-                    borderColor: color,
-                    backgroundColor: currentChartMode === 'bar' ? color : color + '1A',
-                    borderWidth: currentChartMode === 'bar' ? 0 : 3,
-                    tension: 0.4,
-                    pointRadius: currentChartMode === 'line' ? 3 : 0,
-                    pointHitRadius: 10,
-                    fill: false,
-                    stack: currentChartMode === 'bar' ? 'Stack 0' : undefined
-                });
-            });
-
-            // Dataset du capital total
-            lineDatasets.unshift({
-                type: 'line',
-                label: 'Capital Total',
-                data: totalCapitalOverTime,
-                borderColor: '#1f2937',
-                backgroundColor: 'rgba(31, 41, 55, 0.05)',
-                borderWidth: currentChartMode === 'line' ? 3 : 2,
-                tension: 0.4,
-                pointRadius: currentChartMode === 'line' ? 3 : 0,
-                fill: currentChartMode === 'line',
-                borderDash: currentChartMode === 'line' ? [5, 5] : [],
-                stack: currentChartMode === 'bar' ? 'Stack 1' : undefined
-            });
-
-            // Mise à jour des widgets Textuels
-            const finalCapital = totalCapitalOverTime[totalCapitalOverTime.length - 1] || 0;
-            const finalInterests = finalCapital - totalInvestedFinal;
-            const restToLive = salary - startingMonthlySavings - startingMonthlyExpenses;
-            
-            document.getElementById('summary-total-capital').innerText = currencyFormatter.format(finalCapital);
-            document.getElementById('summary-monthly-savings').innerText = currencyFormatter.format(startingMonthlySavings);
-            document.getElementById('summary-monthly-expenses').innerText = currencyFormatter.format(startingMonthlyExpenses);
-            document.getElementById('summary-monthly-rest').innerText = currencyFormatter.format(restToLive);
-            
-            const restElement = document.getElementById('summary-monthly-rest');
-            if(restToLive < 0) {
-                restElement.classList.replace('text-brand-400', 'text-red-400');
-            } else {
-                restElement.classList.replace('text-red-400', 'text-brand-400');
-            }
-            
-            document.getElementById('summary-invested').innerText = currencyFormatter.format(totalInvestedFinal);
-            document.getElementById('summary-interests').innerText = currencyFormatter.format(finalInterests > 0 ? finalInterests : 0);
-
-            // Mise à jour des graphiques
-            updateCharts(pieLabels, pieData, pieColors, lineLabels, lineDatasets);
-            
-            // Mise à jour des sous-totaux textuels dans le DOM
-            if(state.posts.some(p => p.type === 'percent')){
-                 const container = document.getElementById('posts-container');
-                 const spans = container.querySelectorAll('.text-brand-600');
-                 let percentIndex = 0;
-                 state.posts.forEach(p => {
-                     if(p.type === 'percent' && spans[percentIndex]) {
-                         spans[percentIndex].innerText = currencyFormatter.format((p.value/100)*salary);
-                         percentIndex++;
-                     }
-                 });
-            }
-            
-            if(state.expenses.some(e => e.type === 'percent')){
-                 const container = document.getElementById('expenses-container');
-                 const spans = container.querySelectorAll('.expense-calc-val');
-                 let percentIndex = 0;
-                 state.expenses.forEach(e => {
-                     if(e.type === 'percent' && spans[percentIndex]) {
-                         spans[percentIndex].innerText = currencyFormatter.format((e.value/100)*salary);
-                         percentIndex++;
-                     }
-                 });
-            }
+                return `
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm border-l-4" style="border-left-color: ${COLORS[index % COLORS.length]}">
+                    <h4 class="font-bold text-slate-800 mb-5 text-lg">${pkt.name}</h4>
+                    ${amountSliderHtml}
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="text-xs text-slate-500 uppercase tracking-wider font-semibold">Rendement Annuel</label>
+                            <span class="text-sm font-bold text-emerald-600" id="sim-val-rate-${index}">${pkt.rate} %</span>
+                        </div>
+                        <input type="range" id="sim-slide-rate-${index}" min="0" max="15" step="0.5" value="${pkt.rate}" 
+                            oninput="updatePocketFromSim(${index}, 'rate', this.value, '%')">
+                    </div>
+                </div>
+            `}).join('');
         }
 
-        function initCharts() {
-            // Configuration par défaut Chart.js
-            Chart.defaults.font.family = 'Inter, sans-serif';
-            Chart.defaults.color = '#6b7280';
-            Chart.defaults.plugins.tooltip.padding = 12;
-            Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(17, 24, 39, 0.9)';
+        function updatePocketFromSim(index, field, value, suffix) {
+            state.pockets[index][field] = parseFloat(value) || 0;
+            // Update labels
+            if(field === 'amount') document.getElementById(`sim-val-amt-${index}`).innerText = value + ' ' + suffix;
+            if(field === 'rate') document.getElementById(`sim-val-rate-${index}`).innerText = value + ' ' + suffix;
+            triggerCalc();
+        }
 
-            // Pie Chart
-            const ctxPie = document.getElementById('pieChart').getContext('2d');
-            pieChartInstance = new Chart(ctxPie, {
+        // --- CRUD ACTIONS ---
+        function addExpense() { state.expenses.push({ id: Date.now(), name: 'Nouvelle charge', amount: 500, isDebt: false, start: 0, end: 20 }); renderAll(); triggerCalc(); }
+        function removeExpense(i) { state.expenses.splice(i, 1); renderAll(); triggerCalc(); }
+        function updateExpense(i, field, val) { state.expenses[i][field] = field === 'isDebt' ? val : (field === 'name' ? val : parseFloat(val)||0); triggerCalc(); }
+
+        function addPocket() { state.pockets.push({ id: Date.now(), name: 'Nouveau placement', amountType: '€', amount: 200, rate: 4, vol: 5, tax: 'pfu', initial: 0, start: 0, end: 25 }); renderAll(); triggerCalc(); }
+        function removePocket(i) { state.pockets.splice(i, 1); renderAll(); triggerCalc(); }
+        function updatePocket(i, field, val) { state.pockets[i][field] = field === 'name' || field === 'amountType' || field === 'tax' ? val : parseFloat(val)||0; triggerCalc(); }
+
+        function addEvent() { state.events.push({ id: Date.now(), name: 'Projet', year: 5, amount: -5000, pocketId: state.pockets[0]?.id || 0 }); renderAll(); triggerCalc(); }
+        function removeEvent(i) { state.events.splice(i, 1); renderAll(); triggerCalc(); }
+        function updateEvent(i, field, val) { state.events[i][field] = field === 'name' ? val : parseFloat(val)||0; triggerCalc(); }
+
+        function renderAll() { renderExpenses(); renderPockets(); renderEvents(); }
+        function resetApp() { location.reload(); }
+
+        // --- FINANCIAL ENGINE ---
+        function triggerCalc() {
+            // 1. Gather Global Inputs
+            const income = parseFloat(document.getElementById('input-income').value) || 0;
+            const inflationRate = parseFloat(document.getElementById('input-inflation').value) / 100 || 0;
+            const years = parseInt(document.getElementById('input-years').value) || 25;
+            const months = years * 12;
+            const isStacked = document.getElementById('chart-type-toggle').checked;
+            const isRealValue = document.getElementById('inflation-toggle').checked;
+
+            // Prepare Initial KPIs (Based on Year 0/Month 1 to show initial state)
+            let initialYear = 0;
+            let activeExpensesInit = state.expenses.filter(e => initialYear >= (e.start || 0) && (!e.end || initialYear <= e.end));
+            const totalFixedExpensesInit = activeExpensesInit.reduce((sum, e) => sum + e.amount, 0);
+            
+            // Calculate max debt ratio over the whole period
+            let maxDebtRatio = 0;
+            for(let y = 0; y <= years; y++) {
+                let debtInYear = state.expenses.filter(e => e.isDebt && y >= (e.start||0) && (!e.end || y <= e.end)).reduce((sum, e) => sum + e.amount, 0);
+                let ratio = income > 0 ? debtInYear / income : 0;
+                if(ratio > maxDebtRatio) maxDebtRatio = ratio;
+            }
+
+            // Update Debt KPI
+            document.getElementById('kpi-taux-endettement').innerText = fmtPct.format(maxDebtRatio);
+            const debtCard = document.getElementById('kpi-debt-card');
+            const debtMsg = document.getElementById('kpi-debt-msg');
+            if (maxDebtRatio > 0.35) {
+                debtCard.classList.replace('border-l-rose-500', 'border-l-rose-700');
+                debtCard.classList.add('bg-rose-50');
+                debtMsg.innerText = "Dépassement du seuil (35%) !";
+                debtMsg.classList.add('text-rose-600');
+            } else {
+                debtCard.classList.replace('border-l-rose-700', 'border-l-rose-500');
+                debtCard.classList.remove('bg-rose-50');
+                debtMsg.innerText = "Seuil sain (< 35%) au maximum";
+                debtMsg.classList.remove('text-rose-600');
+            }
+
+            // 3. The Time Loop (Projection Engine)
+            let timeline = [];
+            let pocketStates = state.pockets.map(p => ({
+                id: p.id,
+                name: p.name,
+                capital: p.initial || 0,
+                interests: 0, 
+                history: [],
+                historyOpti: [],
+                historyPessi: [],
+                rateMonthly: Math.pow(1 + (p.rate / 100), 1/12) - 1,
+                volMonthly: (p.vol / 100) / Math.sqrt(12) 
+            }));
+
+            // Prepare events by month
+            const eventsByMonth = {};
+            state.events.forEach(ev => {
+                const monthTarget = ev.year * 12;
+                if(!eventsByMonth[monthTarget]) eventsByMonth[monthTarget] = [];
+                eventsByMonth[monthTarget].push(ev);
+            });
+
+            // Tracking for Donut (Year 1 average)
+            let flowTracker = state.pockets.map(p => ({ id: p.id, totalFlowYear1: 0 }));
+            let resteAVivreYear1 = 0;
+            let totalFixedYear1 = 0;
+            let pctError = false;
+
+            for (let m = 1; m <= months; m++) {
+                let currentYear = m / 12;
+                let df = isRealValue ? Math.pow(1 + inflationRate, currentYear) : 1;
+
+                // A. Determine active flows for THIS month
+                let activeExpenses = state.expenses.filter(e => currentYear >= (e.start || 0) && (!e.end || currentYear <= e.end));
+                let monthlyFixed = activeExpenses.reduce((sum, e) => sum + e.amount, 0);
+                let monthlySavingCapacity = income - monthlyFixed;
+
+                let activePockets = state.pockets.filter(p => currentYear >= (p.start || 0) && (!p.end || currentYear <= p.end));
+                
+                // Distribute capacity
+                let totalAllocatedEuro = 0;
+                let totalAllocatedPct = 0;
+                let monthFlows = {};
+
+                activePockets.forEach(p => {
+                    if (p.amountType === '€') {
+                        monthFlows[p.id] = p.amount;
+                        totalAllocatedEuro += p.amount;
+                    } else {
+                        totalAllocatedPct += p.amount;
+                    }
+                });
+
+                if(totalAllocatedPct > 100) pctError = true;
+                const remainingForPct = Math.max(0, monthlySavingCapacity - totalAllocatedEuro);
+                let totalSavingsFlow = totalAllocatedEuro;
+
+                activePockets.forEach(p => {
+                    if (p.amountType === '%') {
+                        let actualPct = pctError ? (p.amount / totalAllocatedPct) : (p.amount / 100); 
+                        let flow = remainingForPct * actualPct;
+                        monthFlows[p.id] = flow;
+                        totalSavingsFlow += flow;
+                    }
+                });
+
+                let resteAVivreMonth = monthlySavingCapacity - totalSavingsFlow;
+
+                // Track Year 1 stats for the Donut Chart
+                if (m <= 12) {
+                    resteAVivreYear1 += resteAVivreMonth;
+                    totalFixedYear1 += monthlyFixed;
+                    flowTracker.forEach(ft => { ft.totalFlowYear1 += (monthFlows[ft.id] || 0); });
+                }
+
+                // Process Events
+                if (eventsByMonth[m]) {
+                    eventsByMonth[m].forEach(ev => {
+                        let target = pocketStates.find(p => p.id === ev.pocketId) || [...pocketStates].sort((a,b)=>(b.capital+b.interests)-(a.capital+a.interests))[0];
+                        if(target && ev.amount < 0) {
+                            let totalVal = target.capital + target.interests;
+                            let withdrawal = Math.min(Math.abs(ev.amount), totalVal); 
+                            if (totalVal > 0) {
+                                let ratioCap = target.capital / totalVal;
+                                target.capital -= (withdrawal * ratioCap);
+                                target.interests -= (withdrawal * (1 - ratioCap));
+                            }
+                        } else if (target && ev.amount > 0) {
+                            target.capital += ev.amount;
+                        }
+                    });
+                }
+
+                // Compound Interests and Add Flows
+                pocketStates.forEach(ps => {
+                    const pocketConfig = state.pockets.find(p => p.id === ps.id);
+                    const monthlyInjection = monthFlows[ps.id] || 0;
+
+                    let newInterests = (ps.capital + ps.interests) * ps.rateMonthly;
+                    ps.interests += newInterests;
+                    ps.capital += monthlyInjection; 
+
+                    let grossValue = ps.capital + ps.interests;
+                    let coneSpread = (pocketConfig.vol / 100) * grossValue * Math.sqrt(currentYear);
+                    
+                    ps.history.push(grossValue / df);
+                    ps.historyOpti.push((grossValue + coneSpread) / df);
+                    ps.historyPessi.push(Math.max(0, grossValue - coneSpread) / df);
+                });
+
+                if (m % 12 === 0) timeline.push(`Année ${m/12}`);
+            }
+
+            // Error display for percentages
+            document.getElementById('pocket-error').classList.toggle('hidden', !pctError);
+
+            // Update KPI Reste à Vivre (Average of Year 1)
+            let avgResteAVivre = resteAVivreYear1 / 12;
+            document.getElementById('kpi-reste-vivre').innerText = fmtEuro.format(avgResteAVivre);
+            document.getElementById('kpi-reste-vivre').className = avgResteAVivre < 0 ? "text-3xl font-bold text-rose-500" : "text-3xl font-bold text-slate-900";
+
+            // Update Donut (Average of Year 1)
+            updateDonut(totalFixedYear1/12, flowTracker.map(ft => ({ id: ft.id, flow: ft.totalFlowYear1/12 })), avgResteAVivre);
+
+            // 4. Calculate Final KPIs (Taxes)
+            let totalBrutFinal = 0;
+            let totalNetFinal = 0;
+            let finalDf = isRealValue ? Math.pow(1 + inflationRate, years) : 1;
+
+            pocketStates.forEach(ps => {
+                let brut = ps.capital + ps.interests;
+                totalBrutFinal += brut;
+                
+                const pocketConfig = state.pockets.find(p => p.id === ps.id);
+                const taxRate = TAX_RULES[pocketConfig.tax].taxRate;
+                let netInterests = ps.interests * (1 - taxRate);
+                let netTotal = ps.capital + netInterests;
+                
+                totalNetFinal += netTotal;
+            });
+
+            document.getElementById('kpi-capital-brut').innerText = fmtEuro.format(totalBrutFinal / finalDf);
+            document.getElementById('kpi-capital-net').innerText = fmtEuro.format(totalNetFinal / finalDf);
+
+            updateProjectionChart(timeline, pocketStates, isStacked, months);
+        }
+
+        // --- CHARTS ---
+        function updateDonut(avgExpenses, avgPocketFlows, avgResteAVivre) {
+            const ctx = document.getElementById('donutChart').getContext('2d');
+            
+            // Map flows back to names safely
+            let pocketData = [];
+            state.pockets.forEach(p => {
+                let flow = avgPocketFlows.find(f => f.id === p.id)?.flow || 0;
+                pocketData.push(flow);
+            });
+
+            let labels = ['Charges Fixes', ...state.pockets.map(p => p.name), 'Reste à Vivre (Non Alloué)'];
+            let data = [avgExpenses, ...pocketData, Math.max(0, avgResteAVivre)];
+            let bgColors = ['#f43f5e', ...state.pockets.map((_, i) => COLORS[i % COLORS.length]), '#94a3b8'];
+
+            if (donutChartInst) donutChartInst.destroy();
+
+            donutChartInst = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: [],
-                    datasets: [{ data: [], backgroundColor: [], borderWidth: 0 }]
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: bgColors,
+                        borderWidth: 2,
+                        borderColor: '#ffffff',
+                        hoverOffset: 8
+                    }]
                 },
                 options: {
                     responsive: true,
@@ -664,86 +800,140 @@
                     plugins: {
                         legend: { display: false },
                         tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                            padding: 12,
+                            titleFont: { size: 14, family: 'Inter' },
+                            bodyFont: { size: 14, family: 'Inter' },
                             callbacks: {
-                                label: function(context) {
-                                    let value = context.raw || 0;
-                                    return ' ' + currencyFormatter.format(value) + ' / mois';
-                                }
+                                label: function(context) { return ' ' + fmtEuro.format(context.raw) + ' / mois'; }
                             }
                         }
                     }
                 }
             });
+        }
 
-            // Line Chart
-            const ctxLine = document.getElementById('lineChart').getContext('2d');
-            lineChartInstance = new Chart(ctxLine, {
-                type: 'line',
+        function updateProjectionChart(labels, pocketStates, isStacked, totalMonths) {
+            const ctx = document.getElementById('projectionChart').getContext('2d');
+            if (projChartInst) projChartInst.destroy();
+
+            let datasets = [];
+
+            if (isStacked) {
+                pocketStates.forEach((ps, i) => {
+                    let yearlyData = ps.history.filter((_, idx) => (idx + 1) % 12 === 0);
+                    datasets.push({
+                        label: ps.name,
+                        data: yearlyData,
+                        backgroundColor: COLORS[i % COLORS.length],
+                        stack: 'Stack 0',
+                        borderRadius: 4,
+                    });
+                });
+            } else {
+                pocketStates.forEach((ps, i) => {
+                    let color = COLORS[i % COLORS.length];
+                    let yearlyData = ps.history.filter((_, idx) => (idx + 1) % 12 === 0);
+                    let yearlyOpti = ps.historyOpti.filter((_, idx) => (idx + 1) % 12 === 0);
+                    let yearlyPessi = ps.historyPessi.filter((_, idx) => (idx + 1) % 12 === 0);
+                    
+                    const pocketConfig = state.pockets.find(p => p.id === ps.id);
+
+                    datasets.push({
+                        label: ps.name + ' (Neutre)',
+                        data: yearlyData,
+                        borderColor: color,
+                        backgroundColor: 'transparent',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        pointRadius: 0,
+                        pointHitRadius: 15
+                    });
+
+                    if(pocketConfig.vol > 0) {
+                         datasets.push({
+                            label: ps.name + ' (Haut)',
+                            data: yearlyOpti,
+                            borderColor: color + '30',
+                            backgroundColor: 'transparent',
+                            borderWidth: 1,
+                            borderDash: [5, 5],
+                            tension: 0.4,
+                            pointRadius: 0
+                        });
+                        datasets.push({
+                            label: ps.name + ' (Bas)',
+                            data: yearlyPessi,
+                            borderColor: color + '30',
+                            backgroundColor: color + '15', 
+                            fill: '-2', 
+                            borderWidth: 1,
+                            borderDash: [5, 5],
+                            tension: 0.4,
+                            pointRadius: 0
+                        });
+                    }
+                });
+            }
+
+            projChartInst = new Chart(ctx, {
+                type: isStacked ? 'bar' : 'line',
                 data: {
-                    labels: [],
-                    datasets: []
+                    labels: labels,
+                    datasets: datasets
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    interaction: {
-                        mode: 'index',
-                        intersect: false,
+                    interaction: { mode: 'index', intersect: false },
+                    scales: {
+                        x: {
+                            stacked: isStacked,
+                            grid: { display: false, drawBorder: false },
+                            ticks: { font: { family: 'Inter', size: 12 }, color: '#64748b' }
+                        },
+                        y: {
+                            stacked: isStacked,
+                            beginAtZero: true,
+                            grid: { color: '#f1f5f9', drawBorder: false },
+                            ticks: {
+                                font: { family: 'Inter', size: 12 },
+                                color: '#64748b',
+                                callback: function(value) { return value > 999 ? (value/1000).toFixed(0) + ' k€' : value + ' €'; }
+                            }
+                        }
                     },
                     plugins: {
                         legend: {
                             position: 'bottom',
-                            labels: { usePointStyle: true, boxWidth: 8 }
+                            labels: {
+                                font: { family: 'Inter', size: 13 },
+                                usePointStyle: true,
+                                padding: 20,
+                                filter: function(item, chart) {
+                                    return !item.text.includes('(Haut)') && !item.text.includes('(Bas)');
+                                }
+                            }
                         },
                         tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                            padding: 12,
+                            titleFont: { size: 14, family: 'Inter' },
+                            bodyFont: { size: 13, family: 'Inter' },
                             callbacks: {
-                                label: function(context) {
-                                    return ' ' + context.dataset.label + ': ' + currencyFormatter.format(context.raw);
-                                }
+                                label: function(context) { return context.dataset.label + ': ' + fmtEuro.format(context.raw); }
                             }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: '#f3f4f6' },
-                            ticks: {
-                                callback: function(value) {
-                                    return new Intl.NumberFormat('fr-FR', { notation: "compact", compactDisplay: "short" }).format(value) + '€';
-                                }
-                            }
-                        },
-                        x: {
-                            grid: { display: false }
                         }
                     }
                 }
             });
         }
 
-        function updateCharts(pieLabels, pieData, pieColors, lineLabels, lineDatasets) {
-            // Update Pie
-            if (pieData.length === 0) {
-                pieChartInstance.data.labels = ['Aucune épargne'];
-                pieChartInstance.data.datasets[0].data = [1];
-                pieChartInstance.data.datasets[0].backgroundColor = ['#e5e7eb'];
-            } else {
-                pieChartInstance.data.labels = pieLabels;
-                pieChartInstance.data.datasets[0].data = pieData;
-                pieChartInstance.data.datasets[0].backgroundColor = pieColors;
-            }
-            pieChartInstance.update();
-
-            // Configurer le stacking selon le mode
-            const isBar = (currentChartMode === 'bar');
-            lineChartInstance.options.scales.y.stacked = isBar;
-            lineChartInstance.options.scales.x.stacked = isBar;
-
-            // Update Line
-            lineChartInstance.data.labels = lineLabels;
-            lineChartInstance.data.datasets = lineDatasets;
-            lineChartInstance.update();
-        }
+        // --- INIT ---
+        window.onload = () => {
+            renderAll();
+            setTimeout(triggerCalc, 100);
+        };
     </script>
 </body>
 </html>
