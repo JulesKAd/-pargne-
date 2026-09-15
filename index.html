@@ -23,7 +23,7 @@
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-        /* Jauges cross-browser (Correction Firefox/Safari/Chrome) */
+        /* Jauges cross-browser */
         input[type=range] {
             -webkit-appearance: none;
             -moz-appearance: none;
@@ -85,7 +85,11 @@
             <h1 class="text-3xl font-bold text-slate-900 tracking-tight mb-2">Simulateur Patrimonial <span class="text-brand-600">360°</span></h1>
             <p class="text-base text-slate-500">Projection financière, fiscalité, stress test temporel & ajustements.</p>
         </div>
-        <div class="flex gap-4">
+        <div class="flex gap-4 items-center">
+            <!-- Bouton d'authentification modifié pour être cliquable -->
+            <button id="auth-button" class="cursor-pointer hover:shadow-md text-xs font-medium px-4 py-2 rounded-full bg-slate-100 text-slate-500 flex items-center border border-slate-200 transition-all">
+                <span class="w-2 h-2 rounded-full bg-slate-400 inline-block mr-2 animate-pulse"></span>Initialisation...
+            </button>
             <button onclick="resetApp()" class="px-5 py-2.5 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg shadow-sm hover:bg-slate-50 transition">Réinitialiser</button>
             <button onclick="window.print()" class="px-5 py-2.5 text-sm font-medium text-white bg-brand-600 rounded-lg shadow-sm hover:bg-brand-700 transition">Exporter (PDF)</button>
         </div>
@@ -318,6 +322,159 @@
         </div>
     </main>
 
+    <!-- Modal d'Authentification (Cachée par défaut) -->
+    <div id="auth-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex-col justify-center items-center z-50">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md relative">
+            <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            
+            <h2 id="auth-title" class="text-2xl font-bold text-slate-800 mb-6 text-center">Connexion</h2>
+            
+            <form id="auth-form" onsubmit="handleAuthSubmit(event)" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Email</label>
+                    <input type="email" id="auth-email" required class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Mot de passe</label>
+                    <input type="password" id="auth-password" required class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
+                </div>
+                <div id="auth-error" class="hidden text-sm text-rose-600 bg-rose-50 p-3 rounded-lg"></div>
+                
+                <button type="submit" id="auth-submit-btn" class="w-full py-3 px-4 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-medium transition shadow-md mt-2">
+                    Se connecter
+                </button>
+            </form>
+            
+            <div class="mt-6 text-center text-sm text-slate-600">
+                <span id="auth-toggle-text">Pas encore de compte ?</span>
+                <button onclick="toggleAuthMode()" id="auth-toggle-btn" class="font-bold text-brand-600 hover:text-brand-800 ml-1">S'inscrire</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT FIREBASE & AUTHENTIFICATION -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        // Ajout des fonctions pour gérer Email/Mot de passe
+        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+        const providedConfig = {
+            apiKey: "AIzaSyAQWCCOSufhROWRkzi_enD6qke37h7US8E",
+            authDomain: "jvest-bfb6c.firebaseapp.com",
+            projectId: "jvest-bfb6c",
+            storageBucket: "jvest-bfb6c.firebasestorage.app",
+            messagingSenderId: "389195166366",
+            appId: "1:389195166366:web:abdb505fe4e6d7d5dc018f",
+            measurementId: "G-D2E248JC5F"
+        };
+        
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : providedConfig;
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // UI Elements
+        const authBtn = document.getElementById('auth-button');
+        const authModal = document.getElementById('auth-modal');
+        const authForm = document.getElementById('auth-form');
+        const authTitle = document.getElementById('auth-title');
+        const authSubmitBtn = document.getElementById('auth-submit-btn');
+        const authToggleText = document.getElementById('auth-toggle-text');
+        const authToggleBtn = document.getElementById('auth-toggle-btn');
+        const authError = document.getElementById('auth-error');
+        
+        let isLoginMode = true; // true = Connexion, false = Inscription
+        window.currentUser = null;
+        
+        // Surveillance de l'état de connexion en temps réel
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // Connecté
+                authBtn.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-2"></span>Se déconnecter (${user.email})`;
+                authBtn.className = "cursor-pointer hover:shadow-md text-xs font-medium px-4 py-2 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center transition-all";
+                authBtn.onclick = () => signOut(auth); // Le clic déconnecte
+                window.currentUser = user; 
+                closeAuthModal(); // Ferme la modale si elle était ouverte
+            } else {
+                // Déconnecté
+                authBtn.innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-500 inline-block mr-2"></span>Se connecter`;
+                authBtn.className = "cursor-pointer hover:shadow-md text-xs font-medium px-4 py-2 rounded-full bg-white text-slate-700 border border-slate-300 flex items-center transition-all";
+                authBtn.onclick = () => window.openAuthModal(); // Le clic ouvre la modale
+                window.currentUser = null;
+            }
+        });
+
+        // Exposer les fonctions d'ouverture/fermeture au scope global (HTML)
+        window.openAuthModal = () => {
+            authModal.classList.remove('hidden');
+            authModal.classList.add('flex');
+            authError.classList.add('hidden'); // Reset errors
+        };
+        
+        window.closeAuthModal = () => {
+            authModal.classList.add('hidden');
+            authModal.classList.remove('flex');
+        };
+
+        // Basculer entre le mode Connexion et Inscription
+        window.toggleAuthMode = () => {
+            isLoginMode = !isLoginMode;
+            authError.classList.add('hidden');
+            if(isLoginMode) {
+                authTitle.innerText = "Connexion";
+                authSubmitBtn.innerText = "Se connecter";
+                authToggleText.innerText = "Pas encore de compte ?";
+                authToggleBtn.innerText = "S'inscrire";
+            } else {
+                authTitle.innerText = "Créer un compte";
+                authSubmitBtn.innerText = "S'inscrire";
+                authToggleText.innerText = "Déjà un compte ?";
+                authToggleBtn.innerText = "Se connecter";
+            }
+        };
+
+        // Gérer la soumission du formulaire (Inscription ou Connexion)
+        window.handleAuthSubmit = (e) => {
+            e.preventDefault();
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
+            authError.classList.add('hidden');
+            
+            authSubmitBtn.disabled = true;
+            authSubmitBtn.innerText = "Patientez...";
+
+            const authPromise = isLoginMode 
+                ? signInWithEmailAndPassword(auth, email, password)
+                : createUserWithEmailAndPassword(auth, email, password);
+
+            authPromise
+                .then((userCredential) => {
+                    // Succès ! L'observateur onAuthStateChanged va prendre le relais pour l'UI
+                    authForm.reset();
+                })
+                .catch((error) => {
+                    console.error("Auth Error:", error.code, error.message);
+                    authError.classList.remove('hidden');
+                    // Traductions simples des erreurs courantes
+                    if(error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                        authError.innerText = "Email ou mot de passe incorrect.";
+                    } else if (error.code === 'auth/email-already-in-use') {
+                        authError.innerText = "Cet email est déjà utilisé par un autre compte.";
+                    } else if (error.code === 'auth/weak-password') {
+                        authError.innerText = "Le mot de passe doit faire au moins 6 caractères.";
+                    } else {
+                        authError.innerText = "Une erreur est survenue : " + error.message;
+                    }
+                })
+                .finally(() => {
+                    authSubmitBtn.disabled = false;
+                    authSubmitBtn.innerText = isLoginMode ? "Se connecter" : "S'inscrire";
+                });
+        };
+    </script>
+
+    <!-- SCRIPT DE LOGIQUE METIER ET CHARTS (Intact) -->
     <script>
         // --- STATE MANAGEMENT ---
         let state = {
@@ -389,6 +546,20 @@
                     </div>
                     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
                         <div>
+                            <label class="block text-xs font-medium text-slate-500 mb-1">Montant Mensuel</label>
+                            <div class="flex items-center bg-slate-50 rounded-lg border border-slate-200 px-3 py-2">
+                                <input type="number" value="${exp.amount}" onchange="updateExpense(${index}, 'amount', this.value)" class="w-full bg-transparent outline-none text-sm">
+                                <span class="text-slate-400 text-sm ml-1">€</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-500 mb-1">Type de dépense</label>
+                            <select onchange="updateExpense(${index}, 'isDebt', this.value === 'true')" class="w-full bg-slate-50 rounded-lg border border-slate-200 px-3 py-2 outline-none focus:border-brand-500 text-sm">
+                                <option value="false" ${!exp.isDebt ? 'selected' : ''}>Charge Classique</option>
+                                <option value="true" ${exp.isDebt ? 'selected' : ''}>Crédit / Dette</option>
+                            </select>
+                        </div>
+                        <div>
                             <label class="block text-xs font-medium text-slate-500 mb-1">Début (Mois/Année)</label>
                             <input type="month" value="${exp.start}" onchange="updateExpense(${index}, 'start', this.value)" class="w-full bg-slate-50 rounded-lg border border-slate-200 px-3 py-2 outline-none focus:border-brand-500 text-sm">
                         </div>
@@ -414,6 +585,23 @@
                         <div class="space-y-4">
                             <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">1. Flux Financiers</h4>
                             <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-500 mb-1">Capital Initial</label>
+                                    <div class="flex items-center bg-slate-50 rounded-lg border border-slate-200 px-3 py-2">
+                                        <input type="number" value="${pkt.initial || 0}" onchange="updatePocket(${index}, 'initial', this.value)" class="w-full bg-transparent outline-none text-sm">
+                                        <span class="text-slate-400 text-sm ml-1">€</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-500 mb-1">Apport Mensuel</label>
+                                    <div class="flex items-center bg-slate-50 rounded-lg border border-slate-200 px-1 py-1">
+                                        <input type="number" value="${pkt.amount}" onchange="updatePocket(${index}, 'amount', this.value)" class="w-full bg-transparent outline-none text-sm px-2">
+                                        <select onchange="updatePocket(${index}, 'amountType', this.value)" class="bg-transparent text-slate-500 text-sm outline-none border-l border-slate-200 pl-1 h-full py-1">
+                                            <option value="€" ${pkt.amountType === '€' ? 'selected' : ''}>€</option>
+                                            <option value="%" ${pkt.amountType === '%' ? 'selected' : ''}>%</option>
+                                        </select>
+                                    </div>
+                                </div>
                                 <div>
                                     <label class="block text-xs font-medium text-slate-500 mb-1">Début (Mois/Année)</label>
                                     <input type="month" value="${pkt.start}" onchange="updatePocket(${index}, 'start', this.value)" class="w-full bg-slate-50 rounded-lg border border-slate-200 px-3 py-2 outline-none focus:border-brand-500 text-sm">
